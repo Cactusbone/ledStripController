@@ -1,0 +1,13 @@
+{
+    "name": "ledStrip",
+    "version": "1.0.0",
+    "main": "./main.js",
+    "dependencies": {
+        "serialport": "1.1.x",
+        "fluent-ffmpeg": "git://github.com/Cactusbone/node-fluent-ffmpeg",
+        "async": "0.2.x",
+        "canvas": "1.1.x",
+        "underscore": "x",
+        "express": "x"
+    }
+}

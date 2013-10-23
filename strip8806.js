@@ -64,9 +64,10 @@ function write(data) {
 
     // it looks like (empirically) format is bgr
     for (var i = 0; i < led_quantity; i++) {
-        var b = 6 + i * 3;
-        var g = b + 1;
-        var r = g + 1;
+        var pos = 6 + i * 3;
+        var r = pos + 0;
+        var b = pos + 1;
+        var g = pos + 2;
         if (data[i]) {
             buffer[r] = data[i].r;
             buffer[g] = data[i].g;

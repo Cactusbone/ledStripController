@@ -1,21 +1,30 @@
 var $ = require('jquery');
-var _ = require('underscore');
-
-require('../node_modules/bootstrap-stylus/js/button.js');
-
+//var _ = require('underscore');
 
 $(function () {
     $("#applyColor").on("click", function () {
         var color = $("#color").val();
         $.ajax({
             url: '/setColor',
-            dataType: 'json',
             data: {color: color},
             error: function (jqXHR, textStatus) {
                 console.error("ajax error", textStatus);
             },
             success: function (result) {
-                console.info("ok!");
+                console.info("ok!", result);
+            }
+        });
+    });
+
+    $("#applyFile").on("click", function () {
+        $.ajax({
+            url: '/playFile',
+            data: {file: "sunrise"},
+            error: function (jqXHR, textStatus) {
+                console.error("ajax error", textStatus);
+            },
+            success: function (result) {
+                console.info("ok!", result);
             }
         });
     });

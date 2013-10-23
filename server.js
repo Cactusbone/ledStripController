@@ -1,14 +1,17 @@
 var express = require('express');
-var _ = require('underscore');
+//var _ = require('underscore');
 var logule = require('logule').init(module);
 var optimist = require('optimist');
-var async = require('async');
+//var async = require('async');
 var path = require('path');
 var browserify = require('browserify');
 var jadeify = require('simple-jadeify');
 var jade = require('jade');
 var stylus = require('stylus');
 var nib = require('nib');
+var onecolor = require('onecolor');
+
+var controller = require("./controller");
 
 var opt = optimist
     .default({
@@ -84,12 +87,32 @@ app.get('^(/|/index.html)$', function (req, res) {
 
 ////////////////////////////////////////////////////////////////////////////////
 app.get('^/setColor', function (req, res) {
-    //todo
     var color = req.param("color");
-    logule.info(color);
+    var parsedColor = onecolor(color);
+    if (!parsedColor) {
+        res.send("invalid Color", 400);
+        return;
+    }
+    controller.playColor({
+        r: Math.round(parsedColor.red() * 255),
+        g: Math.round(parsedColor.green() * 255),
+        b: Math.round(parsedColor.blue() * 255),
+    });
+    //todo send status
     res.send({});
 });
 
+////////////////////////////////////////////////////////////////////////////////
+app.get('^/playFile', function (req, res) {
+    var file = req.param("file");
+    if (!file) {
+        res.send("invalid file name", 400);
+        return;
+    }
+    controller.playFile(file);
+    //todo send status
+    res.send({});
+});
 
 app.listen(port, function () {
     logule.info("Listening on localhost:%d", port);

@@ -17,6 +17,7 @@
         "stylus": "0.38.x",
         "nib": "0.8.x",
         "bootstrap-stylus": "git://github.com/Acquisio/bootstrap-stylus",
+        "onecolor": "2.3.x",
         "optimist": "0.3.x"
     }
 }

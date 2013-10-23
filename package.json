@@ -14,8 +14,9 @@
         "simple-jadeify": "1.x",
         "jquery-browserify": "1.8.x",
         "jade": "0.27.x",
-        "stylus": "0.29.x",
+        "stylus": "0.38.x",
         "nib": "0.8.x",
+        "bootstrap-stylus": "git://github.com/Acquisio/bootstrap-stylus",
         "optimist": "0.3.x"
     }
 }

@@ -42,7 +42,10 @@ function compileStylus(str, filename) {
     return stylus(str)
         .set('filename', filename)
         .set('compress', true)
-        .set('paths', [viewsDir, path.join(viewsDir, 'bootstrap-stylus')])
+        .set('paths', [
+            viewsDir,
+            path.join(__dirname, 'node_modules/bootstrap-stylus/stylus')
+        ])
         .use(nib());
 }
 

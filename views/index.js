@@ -1,7 +1,7 @@
 var $ = require('jquery');
 var _ = require('underscore');
 
-require('./lib/bootstrap.min.js');
+require('../node_modules/bootstrap-stylus/js/button.js');
 
 
 $(function () {

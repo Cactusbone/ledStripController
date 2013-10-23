@@ -1,3 +1,4 @@
+public/*.css
 screenshots
 node_modules
 *.gz

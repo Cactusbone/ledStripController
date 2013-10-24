@@ -15,7 +15,14 @@ module.exports = {
     playFile: playFile,
     playColor: playColor,
     playRandom: playRandom,
+    getStatus: getStatus,
 };
+
+var status = {};
+
+function getStatus() {
+    return status;
+}
 
 function playFile(fileName) {
     var data = fs.readFileSync(path.join(__dirname, fileName + ".json.gz"), {});

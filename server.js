@@ -85,6 +85,15 @@ app.get('^(/|/index.html)$', function (req, res) {
     res.render('index');
 });
 
+function sendStatus(res) {
+    res.send(controller.getStatus());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+app.get('^/status', function (req, res) {
+    sendStatus(res);
+});
+
 ////////////////////////////////////////////////////////////////////////////////
 app.get('^/setColor', function (req, res) {
     var color = req.param("color");
@@ -98,8 +107,7 @@ app.get('^/setColor', function (req, res) {
         g: Math.round(parsedColor.green() * 255),
         b: Math.round(parsedColor.blue() * 255),
     });
-    //todo send status
-    res.send({});
+    sendStatus(res);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -110,8 +118,7 @@ app.get('^/playFile', function (req, res) {
         return;
     }
     controller.playFile(file);
-    //todo send status
-    res.send({});
+    sendStatus(res);
 });
 
 app.listen(port, function () {

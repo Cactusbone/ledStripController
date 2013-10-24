@@ -6,10 +6,22 @@ html
     body
         h1 Gestion de la lumière !
         fieldset
+            legend Statut
+            #status
+            #error
+        fieldset
+            legend Aléatoire
+            button#playRandom Couleurs aléatoires
+        fieldset
             legend Couleur unie
             input#color(type='color') couleur
             button#applyColor Envoyer cette couleur
         fieldset
             legend Fichiers
             button#applyFile Envoyer fichier
+
+        #availableFiles
+
+        #availablePorts
+
         script(src="index.js")

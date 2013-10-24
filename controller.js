@@ -1,35 +1,84 @@
-//var _ = require('underscore');
+var _ = require('underscore');
 var zlib = require('zlib');
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
+var logule = require('logule').init(module);
 
 var strip = require("./strip8806.js");
 
 var led_quantity = 240;
 var buffer = [];
 
-//todo ensure only one is playing
-//todo add callback to playFile for when it's over. or fallback to either last color or random
+var movieFolder = path.join(__dirname, "movies");
+//todo check if it exists
+
 module.exports = {
     playFile: playFile,
     playColor: playColor,
     playRandom: playRandom,
     getStatus: getStatus,
+    getMovies: getMovies,
+    getPorts: strip.getPorts,
 };
 
-var status = {};
+var status = {
+    mode: 'random',
+    color: null,//for color mode
+    stableMode: 'random',//to resume to when file mode ends.
+    timeout: null, //to cancel file mode when another mode is selected
+};
+
+setInterval(regularCheck, 500);
+
+function regularCheck() {
+    switch (status.mode) {
+        case 'random':
+            fillRandomBuffer();
+            strip.write(buffer);
+            break;
+        case 'color':
+            fillBuffer(status.color);
+            strip.write(buffer);//act as a strip keepalive
+            break;
+        case 'file':
+            //do nothing
+            break;
+    }
+}
 
 function getStatus() {
     return status;
 }
 
+function cancelFileIfNeeded() {
+    if (status.timeout) {
+        //i think i have a leak when clearing, with the async loop being incomplete
+        clearTimeout(status.timeout);
+        status.timeout = null;
+    }
+}
+
+function getMovies(cb) {
+    fs.readdir(movieFolder, function (err, files) {
+        cb(err, _.flatten(_.map(files, function (file) {
+            if (/\.json\.gz$/.test(file))
+                return file.replace(/\.json\.gz$/, "");
+            else
+                return null;
+        })));
+    });
+}
+
 function playFile(fileName) {
-    var data = fs.readFileSync(path.join(__dirname, fileName + ".json.gz"), {});
+    status.mode = 'file';
+    var data = fs.readFileSync(path.join(movieFolder, fileName + ".json.gz"), {});
     zlib.gunzip(data, function (err, decoded) {
         if (err)
-            console.error(err);
+            logule.error(err);
         else {
+            if (status.mode != 'file')
+                return;
             var json = JSON.parse(decoded);
             var frame = 0;
             var framecount = json.data.length / json.framelength;
@@ -41,11 +90,13 @@ function playFile(fileName) {
                 buffer = prepareData(json.data.slice(delta, delta + json.framelength), json.framelength);
                 strip.write(buffer);
                 frame++;
-                setTimeout(cb, sleepTime);
+                status.timeout = setTimeout(cb, sleepTime);
             }, function (err) {
                 if (err)
-                    console.error(err);
-                console.info("playback complete");
+                    logule.error(err);
+                logule.info("playback complete");
+                status.mode = status.stableMode;
+                status.timeout = null;
             });
         }
     });
@@ -59,39 +110,37 @@ function playFile(fileName) {
 }
 
 function playColor(color) {
-    function fillBuffer(color) {
-        for (var i = 0; i < led_quantity; i++) {
-            buffer[i] = {r: color.r, g: color.g, b: color.b};
-        }
-    }
+    status.stableMode = 'color';
+    status.mode = 'color';
+    status.color = color;
+}
 
-    fillBuffer(color);
-    setInterval(function () {
-        strip.write(buffer);
-    }, 500);
+function fillBuffer(color) {
+    for (var i = 0; i < led_quantity; i++) {
+        buffer[i] = {r: color.r, g: color.g, b: color.b};
+    }
 }
 
 function playRandom() {
-    function rand255() {
-        return Math.floor(Math.random() * 255);
-    }
+    cancelFileIfNeeded();
+    status.mode = 'random';
+    status.stableMode = 'random';
+}
 
-    function toRandomColor() {
-        return{
-            r: rand255(),
-            g: rand255(),
-            b: rand255()
-        }
-    }
+function rand255() {
+    return Math.floor(Math.random() * 255);
+}
 
-    function fillRandomBuffer() {
-        for (var i = 0; i < led_quantity; i++) {
-            buffer[i] = toRandomColor();
-        }
+function toRandomColor() {
+    return{
+        r: rand255(),
+        g: rand255(),
+        b: rand255()
     }
+}
 
-    setInterval(function () {
-        fillRandomBuffer();
-        strip.write(buffer);
-    }, 500);
+function fillRandomBuffer() {
+    for (var i = 0; i < led_quantity; i++) {
+        buffer[i] = toRandomColor();
+    }
 }

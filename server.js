@@ -1,8 +1,6 @@
 var express = require('express');
-//var _ = require('underscore');
 var logule = require('logule').init(module);
 var optimist = require('optimist');
-//var async = require('async');
 var path = require('path');
 var browserify = require('browserify');
 var jadeify = require('simple-jadeify');
@@ -108,6 +106,33 @@ app.get('^/setColor', function (req, res) {
         b: Math.round(parsedColor.blue() * 255),
     });
     sendStatus(res);
+});
+
+
+////////////////////////////////////////////////////////////////////////////////
+app.get('^/playRandom', function (req, res) {
+    controller.playRandom();
+    sendStatus(res);
+});
+
+////////////////////////////////////////////////////////////////////////////////
+app.get('^/getMovies', function (req, res) {
+    controller.getMovies(function (err, files) {
+        if (err)
+            res.send(err, 500);
+        else
+            res.send(files);
+    });
+});
+
+////////////////////////////////////////////////////////////////////////////////
+app.get('^/getPorts', function (req, res) {
+    controller.getPorts(function (err, ports) {
+        if (err)
+            res.send(err, 500);
+        else
+            res.send(ports);
+    });
 });
 
 ////////////////////////////////////////////////////////////////////////////////

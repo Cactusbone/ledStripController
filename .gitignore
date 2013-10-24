@@ -1,5 +1,5 @@
 public/*.css
 screenshots
 node_modules
-*.gz
+movies
 *.mp4

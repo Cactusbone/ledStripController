@@ -1,15 +1,7 @@
 //https://github.com/voodootikigod/node-serialport
 
+var logule = require('logule').init(module);
 var SerialPort = require("serialport");
-
-/*SerialPort.list(function (err, ports) {
- ports.forEach(function (port) {
- console.log(port.comName);
- console.log(port.pnpId);
- console.log(port.manufacturer);
- });
- });
- */
 
 /*
  a renvoyer a chaque fois.
@@ -34,17 +26,22 @@ buffer[3] = (led_quantity - 1) >> 8;            // LED count high byte
 buffer[4] = (led_quantity - 1) & 0xff;          // LED count low byte
 buffer[5] = buffer[3] ^ buffer[4] ^ 0x55; // Checksum
 
-var serialPort = new SerialPort.SerialPort("COM6", {
+var port = "COM6";
+
+var serialPort = new SerialPort.SerialPort(port, {
     baudRate: 115200
 });
 
 module.exports = {
-    write: write
+    write: write,
+    getPorts: function (cb) {
+        SerialPort.list(cb)
+    },
 };
 
 var lastAck;
 serialPort.on("open", function () {
-    console.log('open');
+    logule.info('open on', port);
     serialPort.on('data', function (data) {
         if (/^Ada/.test(data)) {
             lastAck = Date.now();
@@ -52,10 +49,10 @@ serialPort.on("open", function () {
     });
 });
 serialPort.on('error', function (err) {
-    console.error(err);
+    logule.error(err);
 });
 serialPort.on("close", function (data) {
-    console.log("serial port closed", data);
+    logule.info("serial port closed", data);
 });
 
 function write(data) {
@@ -81,6 +78,8 @@ function write(data) {
 
     serialPort.write(buffer, function (err, results) {
         if (err)
-            console.log('err ' + err);
+            logule.error('err ' + err);
+        else
+            logule.debug(results);
     });
 }

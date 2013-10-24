@@ -4,17 +4,16 @@ var async = require('async');
 var Canvas = require('canvas');
 var Image = Canvas.Image;
 var fs = require('fs');
+var logule = require('logule').init(module);
 
 var ffmpeg = require("fluent-ffmpeg");
 
 var Metalib = ffmpeg.Metadata;
 
-// make sure you set the correct path to your video file
 new Metalib(path.join(__dirname, "..", 'Sunrise.mp4'), function (metadata, err) {
     if (err)
-        console.error(err);
+        logule.error(err);
     else {
-        console.log(path.join(__dirname, "..", 'Sunrise.mp4'));
         var position = 0;
         var result = [];
         async.whilst(
@@ -25,9 +24,9 @@ new Metalib(path.join(__dirname, "..", 'Sunrise.mp4'), function (metadata, err) 
                 position++;
                 processSecond(position, function (err, data) {
                     if (err)
-                        console.error("error processing %d / %d : %s", position, metadata.durationsec, err);
+                        logule.error("error processing %d / %d : %s", position, metadata.durationsec, err);
                     else {
-                        console.log(position + "/" + metadata.durationsec);
+                        logule.info(position + "/" + metadata.durationsec);
                         result = result.concat(data);
                     }
                     callback(err);
@@ -35,7 +34,7 @@ new Metalib(path.join(__dirname, "..", 'Sunrise.mp4'), function (metadata, err) 
             },
             function (err) {
                 if (err)
-                    console.error(err);
+                    logule.error(err);
                 else {
                     zlib.gzip(JSON.stringify({
                         name: "Sunrise",
@@ -44,14 +43,14 @@ new Metalib(path.join(__dirname, "..", 'Sunrise.mp4'), function (metadata, err) 
                         data: result
                     }), function (err, data) {
                         if (err)
-                            console.error(err);
+                            logule.error(err);
                         else {
                             var filename = path.join(__dirname, "..", "sunrise.json.gz");
                             fs.writeFile(filename, data, {}, function (err) {
                                 if (err)
-                                    console.error(err);
+                                    logule.error(err);
                                 else
-                                    console.log("conversion complete !, saved as %s", filename);
+                                    logule.info("conversion complete !, saved as %s", filename);
                             })
                         }
                     });
@@ -94,7 +93,7 @@ function processSecond(second, cb) {
                         if (filename) {
                             var img = new Image;
                             img.onerror = function (err) {
-                                console.error("error reading", img.src, err);
+                                logule.error("error reading", img.src, err);
                             };
                             img.onload = function () {
                                 var canvas = new Canvas(img.width, img.height);
@@ -103,26 +102,26 @@ function processSecond(second, cb) {
                                 var imageData = ctx.getImageData(0, 0, img.width, img.height);
                                 for (var line = 0; line < img.height; line++) {
                                     var pos = line * img.width * 4;
-                                    /*var r = 0;
-                                     var g = 0;
-                                     var b = 0;
-                                     for (var i = 0; i < img.width; i += 4) {
-                                     r += imageData.data[pos + i + 0];
-                                     g += imageData.data[pos + i + 1];
-                                     b += imageData.data[pos + i + 2];
-                                     //+3 is alpha
-                                     }
-                                     result.push({
-                                     r: Math.round(r / img.width),
-                                     g: Math.round(g / img.width),
-                                     b: Math.round(b / img.width)
-                                     });          */
-                                    var column = 200;
+                                    var r = 0;
+                                    var g = 0;
+                                    var b = 0;
+                                    for (var i = 0; i < img.width; i += 4) {
+                                        r += imageData.data[pos + i + 0];
+                                        g += imageData.data[pos + i + 1];
+                                        b += imageData.data[pos + i + 2];
+                                        //+3 is alpha
+                                    }
                                     result.push({
-                                        r: imageData.data[pos + column + 0],
-                                        g: imageData.data[pos + column + 1],
-                                        b: imageData.data[pos + column + 2]
+                                        r: Math.round(r / img.width),
+                                        g: Math.round(g / img.width),
+                                        b: Math.round(b / img.width)
                                     });
+//                                    var column = 200;
+//                                    result.push({
+//                                        r: imageData.data[pos + column + 0],
+//                                        g: imageData.data[pos + column + 1],
+//                                        b: imageData.data[pos + column + 2]
+//                                    });
                                 }
                                 callback(null, result);
                             };

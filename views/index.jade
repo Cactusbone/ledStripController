@@ -11,17 +11,24 @@ html
             #error
         fieldset
             legend Aléatoire
-            button#playRandom Couleurs aléatoires
+            button.btn.btn-primary#playRandom Couleurs aléatoires
         fieldset
             legend Couleur unie
             input#color(type='color') couleur
-            button#applyColor Envoyer cette couleur
+            button.btn.btn-primary#applyColor Envoyer cette couleur
         fieldset
             legend Fichiers
-            button#applyFile Envoyer fichier
+            #availableFiles
+        fieldset
+            legend Ports
+            #availablePorts
 
-        #availableFiles
-
-        #availablePorts
+        fieldset
+            legend Envoi de fichier vidéo
+            | fichier vidéo :
+            input#file(type='file')
+            | ou url :
+            input#url(type='url') url
+            button.btn.btn-primary#sendFileOrUrl Envoyer
 
         script(src="index.js")

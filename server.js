@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var express = require('express');
 var logule = require('logule').init(module);
 var optimist = require('optimist');
@@ -8,8 +9,11 @@ var jade = require('jade');
 var stylus = require('stylus');
 var nib = require('nib');
 var onecolor = require('onecolor');
+var fs = require('fs');
+var ytdl = require('ytdl');
 
 var controller = require("./controller");
+var converter = require("./converter");
 
 var opt = optimist
     .default({
@@ -84,7 +88,8 @@ app.get('^(/|/index.html)$', function (req, res) {
 });
 
 function sendStatus(res) {
-    res.send(controller.getStatus());
+    var status = controller.getStatus();
+    res.send(status);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,6 +149,60 @@ app.get('^/playFile', function (req, res) {
     }
     controller.playFile(file);
     sendStatus(res);
+});
+
+app.post('^/sendFileOrUrl', function (req, res) {
+    var filepath = path.join(__dirname, "temp.mp4");
+    var outputName = "temp";
+
+    var url = req.param('url');
+    if (url) {
+        res.send("working on url", url);
+        var outputStream = fs.createWriteStream(filepath);
+        var error;
+        ytdl(url, {
+            quality: 'lowest',
+            filter: function (format) {
+                return format.container === 'mp4';
+            }
+        }).on('info',function (info, format) {
+                logule.info("found file:", info.title, format.container, format.resolution);
+                outputName = info.title;
+            }).on("error",function (err) {
+                logule.error(err);
+                if (!error)
+                    res.send(err, 500);
+                error = err;
+            }).pipe(outputStream);
+        outputStream.on("error", function (err) {
+            logule.error(err);
+            if (!error)
+                res.send(err, 500);
+            error = err;
+        });
+        outputStream.on("finish", function () {
+            if (!error)
+                finish();
+        });
+    } else if (req.files && _.size(req.files) > 0 && req.files.file) {
+        filepath = req.files.file.path;
+        outputName = req.files.file.name;
+        outputName = outputName.substr(0, outputName.lastIndexOf('.'));
+        res.send("working on file", outputName);
+        finish();
+    } else {
+        res.send("missing file", 400);
+    }
+
+    function finish() {
+        converter.convertVideo(filepath, outputName, function (err, filename) {
+            if (err)
+                logule.error(err);
+            else
+                logule.info("done", filename);
+            fs.unlink(filepath);
+        })
+    }
 });
 
 app.listen(port, function () {

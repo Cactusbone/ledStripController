@@ -26,8 +26,9 @@ var status = {
     mode: 'random',
     color: null,//for color mode
     stableMode: 'random',//to resume to when file mode ends.
-    timeout: null, //to cancel file mode when another mode is selected
 };
+
+var timeout;//to cancel file mode when another mode is selected
 
 setInterval(regularCheck, 500);
 
@@ -52,10 +53,10 @@ function getStatus() {
 }
 
 function cancelFileIfNeeded() {
-    if (status.timeout) {
+    if (timeout) {
         //i think i have a leak when clearing, with the async loop being incomplete
-        clearTimeout(status.timeout);
-        status.timeout = null;
+        clearTimeout(timeout);
+        timeout = null;
     }
 }
 
@@ -71,6 +72,7 @@ function getMovies(cb) {
 }
 
 function playFile(fileName) {
+    cancelFileIfNeeded();
     status.mode = 'file';
     var data = fs.readFileSync(path.join(movieFolder, fileName + ".json.gz"), {});
     zlib.gunzip(data, function (err, decoded) {
@@ -90,13 +92,13 @@ function playFile(fileName) {
                 buffer = prepareData(json.data.slice(delta, delta + json.framelength), json.framelength);
                 strip.write(buffer);
                 frame++;
-                status.timeout = setTimeout(cb, sleepTime);
+                timeout = setTimeout(cb, sleepTime);
             }, function (err) {
                 if (err)
                     logule.error(err);
                 logule.info("playback complete");
                 status.mode = status.stableMode;
-                status.timeout = null;
+                timeout = null;
             });
         }
     });

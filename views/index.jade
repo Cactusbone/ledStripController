@@ -6,6 +6,12 @@ html
     body
         h1 Gestion de la lumière !
         fieldset
+            legend Ports
+            #availablePorts
+            label Quantité de leds
+                input#ledquantity(value='240')
+                button.btn.btn-warning#setLeds Changer
+        fieldset
             legend Statut
             #status
             #error
@@ -20,15 +26,11 @@ html
             legend Fichiers
             #availableFiles
         fieldset
-            legend Ports
-            #availablePorts
-
-        fieldset
             legend Envoi de fichier vidéo
-            | fichier vidéo :
-            input#file(type='file')
-            | ou url :
-            input#url(type='url') url
+            label fichier vidéo :
+                input#file(type='file')
+            label ou url :
+                input#url(type='url') url
             button.btn.btn-primary#sendFileOrUrl Envoyer
 
         script(src="index.js")

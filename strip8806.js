@@ -16,47 +16,57 @@ var SerialPort = require("serialport");
  puis RGB/RGB/RGB/RGB & co
  */
 
-var led_quantity = 240;
+var led_quantity;
+var buffer;
 
-var buffer = new Buffer(240 * 3 + 6);
-buffer[0] = 0x41;//A                                // Magic word
-buffer[1] = 0x64;//d
-buffer[2] = 0x61;//a
-buffer[3] = (led_quantity - 1) >> 8;            // LED count high byte
-buffer[4] = (led_quantity - 1) & 0xff;          // LED count low byte
-buffer[5] = buffer[3] ^ buffer[4] ^ 0x55; // Checksum
-
-var port = "COM6";
-
-var serialPort = new SerialPort.SerialPort(port, {
-    baudRate: 115200
-});
+var lastAck;
+var serialPort;
 
 module.exports = {
     write: write,
+    initLeds: initLeds,
+    initSerialPort: initSerialPort,
     getPorts: function (cb) {
         SerialPort.list(cb)
     },
 };
 
-var lastAck;
-serialPort.on("open", function () {
-    logule.info('open on', port);
-    serialPort.on('data', function (data) {
-        if (/^Ada/.test(data)) {
-            lastAck = Date.now();
-        }
+function initLeds(quantity) {
+    led_quantity = quantity;
+    buffer = new Buffer(led_quantity * 3 + 6);
+    buffer[0] = 0x41;//A                                // Magic word
+    buffer[1] = 0x64;//d
+    buffer[2] = 0x61;//a
+    buffer[3] = (led_quantity - 1) >> 8;            // LED count high byte
+    buffer[4] = (led_quantity - 1) & 0xff;          // LED count low byte
+    buffer[5] = buffer[3] ^ buffer[4] ^ 0x55; // Checksum
+}
+
+function initSerialPort(port) {
+    if (serialPort)
+        serialPort.close();
+    lastAck = null;
+    serialPort = new SerialPort.SerialPort(port, {
+        baudRate: 115200
     });
-});
-serialPort.on('error', function (err) {
-    logule.error(err);
-});
-serialPort.on("close", function (data) {
-    logule.info("serial port closed", data);
-});
+    serialPort.on("open", function () {
+        logule.info('open on', port);
+        serialPort.on('data', function (data) {
+            if (/^Ada/.test(data)) {
+                lastAck = Date.now();
+            }
+        });
+    });
+    serialPort.on('error', function (err) {
+        logule.error(err);
+    });
+    serialPort.on("close", function (data) {
+        logule.info("serial port closed", data);
+    });
+}
 
 function write(data) {
-    if (!lastAck)
+    if (!lastAck || !serialPort || !buffer)
         return;
 
     // it looks like (empirically) format is bgr

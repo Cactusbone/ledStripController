@@ -98,7 +98,41 @@ $(function () {
         }
     });
 
-    $('body').on("click", ".playMovie", function (event) {
+    $("#initLeds").on("click", function () {
+        $.ajax({
+            url: '/initLeds',
+            data: {
+                ledquantity: $("#ledquantity").val()
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("initLeds", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
+    var $body = $('body');
+    $body.on("click", ".setPort", function (event) {
+        var port = $(event.currentTarget).attr("data-name");
+        $.ajax({
+            url: '/initSerialPort',
+            data: {port: port},
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("setPort", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
+    $body.on("click", ".playMovie", function (event) {
         var movieName = $(event.currentTarget).text();
         $.ajax({
             url: '/playFile',

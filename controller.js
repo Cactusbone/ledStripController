@@ -20,6 +20,8 @@ module.exports = {
     getStatus: getStatus,
     getMovies: getMovies,
     getPorts: strip.getPorts,
+    initLeds: initLeds,
+    initSerialPort: initSerialPort,
 };
 
 var status = {
@@ -27,6 +29,16 @@ var status = {
     color: null,//for color mode
     stableMode: 'random',//to resume to when file mode ends.
 };
+
+function initLeds(quantity) {
+    status.ledQuantity = quantity;
+    strip.initLeds(quantity);
+}
+
+function initSerialPort(port) {
+    status.port = port;
+    strip.initSerialPort(port);
+}
 
 var timeout;//to cancel file mode when another mode is selected
 

@@ -205,6 +205,16 @@ app.post('^/sendFileOrUrl', function (req, res) {
     }
 });
 
+app.get("^/initSerialPort", function (req, res) {
+    controller.initSerialPort(req.param("port"));
+    sendStatus(res);
+});
+
+app.get("^/initLeds", function (req, res) {
+    controller.initLeds(req.param("ledquantity"));
+    sendStatus(res);
+});
+
 app.listen(port, function () {
     logule.info("Listening on localhost:%d", port);
 });

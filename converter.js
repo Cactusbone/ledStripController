@@ -22,50 +22,54 @@ function convertVideo(filepath, outputName, cb) {
         } else {
             var position = 0;
             var result = [];
-            async.whilst(
-                function () {
-                    return position < metadata.durationsec;//avoid last second since it probably wont be complete
-                },
-                function (callback) {
-                    position++;
-                    processSecond(position, function (err, data) {
-                        if (err)
-                            logule.error("error processing %d / %d : %s", position, metadata.durationsec, err);
-                        else {
-                            logule.info(position + "/" + metadata.durationsec);
-                            result = result.concat(data);
-                        }
-                        callback(err);
-                    })
-                },
-                function (err) {
-                    if (err) {
-                        cb(err);
-                        logule.error(err);
-                    } else {
-                        zlib.gzip(JSON.stringify({
-                            name: outputName,
-                            duration: metadata.durationsec,
-                            framelength: 240,
-                            data: result
-                        }), function (err, data) {
-                            if (err) {
-                                logule.error(err);
-                                cb(err);
-                            } else {
-                                var filename = path.join(__dirname, "movies", outputName + ".json.gz");
-                                fs.writeFile(filename, data, {}, function (err) {
-                                    if (err)
-                                        logule.error(err);
-                                    else
-                                        logule.info("conversion complete !, saved as %s", filename);
-                                    cb(err, filename);
-                                })
+            if (!metadata.durationsec)
+                logule.error("empty video or parsing failed! check if ffmpeg environment variable is set");
+            else {
+                async.whilst(
+                    function () {
+                        return position < metadata.durationsec;//avoid last second since it probably wont be complete
+                    },
+                    function (callback) {
+                        position++;
+                        processSecond(position, function (err, data) {
+                            if (err)
+                                logule.error("error processing %d / %d : %s", position, metadata.durationsec, err);
+                            else {
+                                logule.info(position + "/" + metadata.durationsec);
+                                result = result.concat(data);
                             }
-                        });
+                            callback(err);
+                        })
+                    },
+                    function (err) {
+                        if (err) {
+                            cb(err);
+                            logule.error(err);
+                        } else {
+                            zlib.gzip(JSON.stringify({
+                                name: outputName,
+                                duration: metadata.durationsec,
+                                framelength: 240,
+                                data: result
+                            }), function (err, data) {
+                                if (err) {
+                                    logule.error(err);
+                                    cb(err);
+                                } else {
+                                    var filename = path.join(__dirname, "movies", outputName + ".json.gz");
+                                    fs.writeFile(filename, data, {}, function (err) {
+                                        if (err)
+                                            logule.error(err);
+                                        else
+                                            logule.info("conversion complete !, saved as %s", filename);
+                                        cb(err, filename);
+                                    })
+                                }
+                            });
+                        }
                     }
-                }
-            );
+                );
+            }
         }
     });
 

@@ -19,6 +19,7 @@
         "bootstrap-stylus": "git://github.com/Acquisio/bootstrap-stylus",
         "onecolor": "2.3.x",
         "ytdl": "0.1.x",
+        "node-core-audio": "0.3.x",
         "optimist": "0.3.x"
     }
 }

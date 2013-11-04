@@ -1,4 +1,7 @@
 ul
-    each port in ports
-        li.setPort(data-name=port.comName)
-            | #{port.comName} (#{port.manufacturer})
+    if ports.length == 0
+        | Pas de strip de leds !
+    else
+        each port in ports
+            li.setPort(data-name=port.comName)
+                | #{port.comName} (#{port.manufacturer})

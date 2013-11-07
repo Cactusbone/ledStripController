@@ -122,6 +122,12 @@ app.get('^/playRandom', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
+app.get('^/playMusic', function (req, res) {
+    controller.playMusic();
+    sendStatus(res);
+});
+
+////////////////////////////////////////////////////////////////////////////////
 app.get('^/getMovies', function (req, res) {
     controller.getMovies(function (err, files) {
         if (err)
@@ -152,6 +158,7 @@ app.get('^/playFile', function (req, res) {
     sendStatus(res);
 });
 
+////////////////////////////////////////////////////////////////////////////////
 app.post('^/sendFileOrUrl', function (req, res) {
     var filepath = path.join(__dirname, "temp.mp4");
     var outputName = "temp";

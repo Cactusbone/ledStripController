@@ -58,6 +58,21 @@ $(function () {
         });
     });
 
+
+    $("#playMusic").on("click", function () {
+        $.ajax({
+            url: '/playMusic',
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("playMusic", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
     $("#sendFileOrUrl").on("click", function () {
         var data = new FormData();
         var files = $('#file').get(0).files;

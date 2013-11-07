@@ -6,16 +6,21 @@ var async = require('async');
 var logule = require('logule').init(module);
 
 var strip = require("./strip8806.js");
+var sound = require("./sound.js");
 
 var buffer = [];
 
 var movieFolder = path.join(__dirname, "movies");
-//todo check if it exists
+fs.mkdir(movieFolder, function (err) {
+    if (err && err.code != "EEXIST")
+        logule.error(err);
+});
 
 module.exports = {
     playFile: playFile,
     playColor: playColor,
     playRandom: playRandom,
+    playMusic: playMusic,
     getStatus: getStatus,
     getMovies: getMovies,
     getPorts: strip.getPorts,
@@ -26,9 +31,9 @@ module.exports = {
 
 var status = {
     ledQuantity: 240,
-    mode: 'random',
+    mode: 'music',
     color: null,//for color mode
-    stableMode: 'random',//to resume to when file mode ends.
+    stableMode: 'music',//to resume to when file mode ends.
 };
 
 initLeds(status.ledQuantity);
@@ -58,7 +63,7 @@ function writeBuffer() {
 
 var timeout;//to cancel file mode when another mode is selected
 
-setInterval(regularCheck, 50);
+setInterval(regularCheck, 10);
 
 function regularCheck() {
     switch (status.mode) {
@@ -70,6 +75,10 @@ function regularCheck() {
             fillBuffer(status.color);
             writeBuffer();//act as a strip keepalive
             break;
+        case 'music':
+            fillMusicBuffer();
+            writeBuffer();
+            break;
         case 'file':
             //do nothing
             break;
@@ -80,7 +89,7 @@ function getStatus() {
     return status;
 }
 
-function cancelFileIfNeeded() {
+function cancelDynamicIfNeeded() {
     if (timeout) {
         //i think i have a leak when clearing, with the async loop being incomplete
         clearTimeout(timeout);
@@ -99,8 +108,30 @@ function getMovies(cb) {
     });
 }
 
+function playMusic() {
+    cancelDynamicIfNeeded();
+    status.mode = 'music';
+    status.stableMode = 'music';
+}
+
+function fillMusicBuffer() {
+    var soundBuffer = sound.getBuffer();
+    //todo base current value on color
+    var preparedData = [];
+    _.each(soundBuffer, function (val) {
+        var finalValue = Math.abs(Math.round(val * 256));
+        finalValue = Math.max(0, finalValue);
+        finalValue = Math.min(255, finalValue);
+        if (val > 0)
+            preparedData.push({r: finalValue, g: 0, b: 0});
+        else
+            preparedData.push({r: 0, g: 0, b: finalValue});
+    });
+    buffer = extendOrRetractData(preparedData);
+}
+
 function playFile(fileName) {
-    cancelFileIfNeeded();
+    cancelDynamicIfNeeded();
     status.mode = 'file';
     var data = fs.readFileSync(path.join(movieFolder, fileName + ".json.gz"), {});
     zlib.gunzip(data, function (err, decoded) {
@@ -117,7 +148,7 @@ function playFile(fileName) {
                 return frame < framecount
             }, function (cb) {
                 var delta = frame * json.framelength;
-                buffer = prepareData(json.data.slice(delta, delta + json.framelength), json.framelength);
+                buffer = extendOrRetractData(json.data.slice(delta, delta + json.framelength));
                 writeBuffer();
                 frame++;
                 timeout = setTimeout(cb, sleepTime);
@@ -130,16 +161,36 @@ function playFile(fileName) {
             });
         }
     });
+}
 
-    function prepareData(data, framelength) {
-        if (framelength != status.ledQuantity)
-            throw new Error('change length not yet supported');
-        //todo extend array to status.ledQuantity
+function extendOrRetractData(data) {
+    //todo extend array to status.ledQuantity
+    if (data.length < status.ledQuantity)
+        throw new Error('retract not yet supported');
+    if (data.length == status.ledQuantity)
         return data;
-    }
+
+    var dataLengthPerLed = Math.floor(data.length / status.ledQuantity);
+    var result = [];
+    var currentValue = {r: 0, g: 0, b: 0};
+    _.each(data, function (val, index) {
+        currentValue.r += val.r;
+        currentValue.g += val.g;
+        currentValue.b += val.b;
+        if (index % dataLengthPerLed == 0) {
+            currentValue.r = Math.round(currentValue.r / dataLengthPerLed);
+            currentValue.g = Math.round(currentValue.g / dataLengthPerLed);
+            currentValue.b = Math.round(currentValue.b / dataLengthPerLed);
+            result.push(currentValue);
+            currentValue = {r: 0, g: 0, b: 0};
+        }
+    });
+
+    return result;
 }
 
 function playColor(color) {
+    cancelDynamicIfNeeded();
     status.stableMode = 'color';
     status.mode = 'color';
     status.color = color;
@@ -152,7 +203,7 @@ function fillBuffer(color) {
 }
 
 function playRandom() {
-    cancelFileIfNeeded();
+    cancelDynamicIfNeeded();
     status.mode = 'random';
     status.stableMode = 'random';
 }

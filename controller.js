@@ -7,7 +7,6 @@ var logule = require('logule').init(module);
 
 var strip = require("./strip8806.js");
 
-var led_quantity = 240;
 var buffer = [];
 
 var movieFolder = path.join(__dirname, "movies");
@@ -26,10 +25,13 @@ module.exports = {
 };
 
 var status = {
+    ledQuantity: 240,
     mode: 'random',
     color: null,//for color mode
     stableMode: 'random',//to resume to when file mode ends.
 };
+
+initLeds(status.ledQuantity);
 
 function initLeds(quantity) {
     status.ledQuantity = quantity;
@@ -56,7 +58,7 @@ function writeBuffer() {
 
 var timeout;//to cancel file mode when another mode is selected
 
-setInterval(regularCheck, 500);
+setInterval(regularCheck, 50);
 
 function regularCheck() {
     switch (status.mode) {
@@ -130,9 +132,9 @@ function playFile(fileName) {
     });
 
     function prepareData(data, framelength) {
-        if (framelength != led_quantity)
+        if (framelength != status.ledQuantity)
             throw new Error('change length not yet supported');
-        //todo extend array to led_quantity
+        //todo extend array to status.ledQuantity
         return data;
     }
 }
@@ -144,7 +146,7 @@ function playColor(color) {
 }
 
 function fillBuffer(color) {
-    for (var i = 0; i < led_quantity; i++) {
+    for (var i = 0; i < status.ledQuantity; i++) {
         buffer[i] = {r: color.r, g: color.g, b: color.b};
     }
 }
@@ -168,7 +170,7 @@ function toRandomColor() {
 }
 
 function fillRandomBuffer() {
-    for (var i = 0; i < led_quantity; i++) {
+    for (var i = 0; i < status.ledQuantity; i++) {
         buffer[i] = toRandomColor();
     }
 }

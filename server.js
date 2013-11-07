@@ -11,6 +11,7 @@ var nib = require('nib');
 var onecolor = require('onecolor');
 var fs = require('fs');
 var ytdl = require('ytdl');
+var socketio = require('socket.io');
 
 var controller = require("./controller");
 var converter = require("./converter");
@@ -160,6 +161,7 @@ app.post('^/sendFileOrUrl', function (req, res) {
         res.send("working on url", url);
         var outputStream = fs.createWriteStream(filepath);
         var error;
+        //noinspection JSUnusedGlobalSymbols
         ytdl(url, {
             quality: 'lowest',
             filter: function (format) {
@@ -215,6 +217,14 @@ app.get("^/initLeds", function (req, res) {
     sendStatus(res);
 });
 
-app.listen(port, function () {
+var server = app.listen(port, function () {
     logule.info("Listening on localhost:%d", port);
+});
+var io = socketio.listen(server, {
+    logger: logule.sub('socket.io')
+});
+
+////////////////////////////////////////////////////////////////////////////////
+controller.onBuffer(function (buffer) {
+    io.sockets.volatile.emit("buffer", buffer);
 });

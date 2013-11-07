@@ -22,6 +22,7 @@ module.exports = {
     getPorts: strip.getPorts,
     initLeds: initLeds,
     initSerialPort: initSerialPort,
+    onBuffer: onBuffer,
 };
 
 var status = {
@@ -40,6 +41,19 @@ function initSerialPort(port) {
     strip.initSerialPort(port);
 }
 
+var onBufferCb = [];
+
+function onBuffer(cb) {
+    onBufferCb.push(cb);
+}
+
+function writeBuffer() {
+    strip.write(buffer);
+    _.each(onBufferCb, function (cb) {
+        cb(buffer);
+    });
+}
+
 var timeout;//to cancel file mode when another mode is selected
 
 setInterval(regularCheck, 500);
@@ -48,11 +62,11 @@ function regularCheck() {
     switch (status.mode) {
         case 'random':
             fillRandomBuffer();
-            strip.write(buffer);
+            writeBuffer();
             break;
         case 'color':
             fillBuffer(status.color);
-            strip.write(buffer);//act as a strip keepalive
+            writeBuffer();//act as a strip keepalive
             break;
         case 'file':
             //do nothing
@@ -102,7 +116,7 @@ function playFile(fileName) {
             }, function (cb) {
                 var delta = frame * json.framelength;
                 buffer = prepareData(json.data.slice(delta, delta + json.framelength), json.framelength);
-                strip.write(buffer);
+                writeBuffer();
                 frame++;
                 timeout = setTimeout(cb, sleepTime);
             }, function (err) {

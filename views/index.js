@@ -147,6 +147,18 @@ $(function () {
             }
         });
     });
+
+    var socket = io.connect('http://localhost');
+    socket.on('buffer', function (data) {
+        var canvas = $("#canvas").get(0);
+        var ctx = canvas.getContext("2d");
+
+        _.each(data, function (color, index) {
+            ctx.fillStyle = "rgb(" + color.r + "," + color.g + "," + color.b + ")";
+            var baseSize = 4;
+            ctx.fillRect(index * (baseSize + 1), 0, baseSize, baseSize);
+        });
+    });
 });
 
 function loadMovies() {

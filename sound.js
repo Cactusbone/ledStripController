@@ -7,6 +7,8 @@
  https://npmjs.org/package/node-core-audio
 
  http://www.wikihow.com/Make-Your-Christmas-Lights-Flash-to-Music
+
+ http://arc.id.au/SpectrumAnalyser.html
  */
 
 

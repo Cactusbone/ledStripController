@@ -125,7 +125,7 @@ function fillMusicBuffer() {
         if (val > 0)
             preparedData.push({r: finalValue, g: 0, b: 0});
         else
-            preparedData.push({r: 0, g: 0, b: finalValue});
+            preparedData.push({r: 0, g: finalValue, b: 0 });
     });
     buffer = extendOrRetractData(preparedData);
 }

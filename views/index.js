@@ -164,17 +164,38 @@ $(function () {
     });
 
     var socket = io.connect('http://localhost');
-    socket.on('buffer', function (data) {
-        var canvas = $("#canvas").get(0);
-        var ctx = canvas.getContext("2d");
+    var baseSize = 4;
+    var height = baseSize;
+    var maxWidth = 1280;
+    var ledPerLine = 240;
+    var canvas = $("#canvas").get(0);
 
+    computeSize(ledPerLine);
+
+    socket.on('buffer', function (data) {
+        computeSize(data.length);
+
+        var ctx = canvas.getContext("2d");
         _.each(data, function (color, index) {
             ctx.fillStyle = "rgb(" + color.r + "," + color.g + "," + color.b + ")";
-            var baseSize = 4;
-            ctx.fillRect(index * (baseSize + 1), 0, baseSize, baseSize);
+            var x = (index % ledPerLine) * (baseSize + 1);
+            var y = Math.floor(index / ledPerLine) * (baseSize + 1);
+            ctx.fillRect(x, y, baseSize, baseSize);
         });
     });
+
+    function computeSize(nbLeds) {
+        var width = nbLeds * (baseSize + 1);
+        if (width > maxWidth) {
+            var nbLines = Math.ceil(width / maxWidth);
+            ledPerLine = Math.ceil(nbLeds / nbLines);
+            height = nbLines * (baseSize + 1);
+            width = maxWidth;
+        }
+        $("#canvas").attr({width: width, height: height});
+    }
 });
+
 
 function loadMovies() {
     $.ajax({

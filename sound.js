@@ -22,37 +22,37 @@ var outputDeviceId;
 for (var i = 0; i < numDevices; i++) {
     var name = engine.getDeviceName(i);
     logule.info("%d: %s", i, name);
-    if (!inputDeviceId && /Line in/.test(name)) {
+    if (null == inputDeviceId && /Line in|Entr.*e ligne/i.test(name)) {
         inputDeviceId = i;
     }
 //    if (!outputDeviceId && /Haut-parleurs/.test(name)) {
 //        outputDeviceId = i;
 //    }
-    if (!outputDeviceId && /Digital Output/.test(name)) {
+    if (null == outputDeviceId && /Digital Output|sortie num.*riqu/i.test(name)) {
         outputDeviceId = i;
     }
 }
+
+logule.info("in: %d, out: %d", inputDeviceId, outputDeviceId);
 
 var options = {
     inputChannels: 2,
     outputChannels: 2,
 //    framesPerBuffer: 4096,
-    inputDevice: inputDeviceId,
-    outputDevice: outputDeviceId,
     interleaved: true,//allow for single depth buffer to get clone to work
 };
+if (inputDeviceId != null)
+    options.inputDevice = inputDeviceId;
+if (outputDeviceId != null)
+    options.outputDevice = outputDeviceId;
 
-engine.setOptions(options);
+try {
+    engine.setOptions(options);
+} catch (err) {
+    logule.error(err);
+}
 
 logule.info(engine.options);
-
-function windowHamming( coeff, iSample, numTotalCoeffs ) {
-    return coeff * 0.08 + 0.46 * ( 1 + Math.cos(2*Math.PI*iSample/numTotalCoeffs) );
-}
-
-function getSineSample( iSamp, freq ) {
-    return Math.sin( Math.PI * freq * 0.5 * iSamp / options.sampleRate );
-}
 
 function zero(buffer) {
     for (var iChannel = 0; iChannel < buffer.length; ++iChannel)
@@ -61,39 +61,15 @@ function zero(buffer) {
 }
 
 var outputBuffer;
-//engine.addAudioCallback(function (inputBuffer) {
+engine.addAudioCallback(function (inputBuffer) {
+    engine.fft.simple(outputBuffer, inputBuffer, "real");
 //    outputBuffer = _.clone(inputBuffer);
-//    zero(inputBuffer);
-//
-//    return inputBuffer;
-//});
-
-var totalSamples = 0;
-var fftBuffer = [];
-engine.addAudioCallback( function(inputBuffer) {
-    outputBuffer = [];
-
-    //for( var iSample=0; iSample<outputBuffer[0].length; ++iSample ) {
-    //        outputBuffer[0][iSample] = iSample / outputBuffer[0].length;
-    //}
-
-    for( var iSample=0; iSample<inputBuffer.length; ++iSample ) {
-        outputBuffer[iSample] = getSineSample( totalSamples, 6000 );
-        outputBuffer[iSample] += getSineSample( totalSamples, 420 );
-
-        outputBuffer[iSample] = windowHamming( inputBuffer[iSample], iSample, inputBuffer.length );
-        totalSamples++;
-    }
-
-    engine.fft.simple( fftBuffer, outputBuffer, "real" );
-
-    zero( inputBuffer );
-
+    zero(inputBuffer);
     return inputBuffer;
 });
 
 module.exports = {
     getBuffer: function () {
-        return fftBuffer;
+        return outputBuffer;
     }
 };

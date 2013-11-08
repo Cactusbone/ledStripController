@@ -39,7 +39,9 @@ var options = {
     inputChannels: 2,
     outputChannels: 2,
 //    framesPerBuffer: 4096,
-    interleaved: true,//allow for single depth buffer to get clone to work
+    interleaved: false,
+    sampleFormat: 0x02,//int32
+    framesPerBuffer: 256//must be a multiple of 256
 };
 if (inputDeviceId != null)
     options.inputDevice = inputDeviceId;
@@ -62,9 +64,11 @@ function zero(buffer) {
 
 var outputBuffer;
 engine.addAudioCallback(function (inputBuffer) {
-    engine.fft.simple(outputBuffer, inputBuffer, "real");
-//    outputBuffer = _.clone(inputBuffer);
-    zero(inputBuffer);
+//    logule.info("taille", inputBuffer.length, inputBuffer[0].length);
+//    engine.fft.simple(outputBuffer, inputBuffer[0], "real");
+    outputBuffer = _.clone(inputBuffer[0]);
+//    zero(inputBuffer[0]);
+//    zero(inputBuffer[1]);
     return inputBuffer;
 });
 

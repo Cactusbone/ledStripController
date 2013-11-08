@@ -119,7 +119,8 @@ function fillMusicBuffer() {
     //todo base current value on color
     var preparedData = [];
     _.each(soundBuffer, function (val) {
-        var finalValue = Math.abs(Math.round(val * 256));
+        var finalValue = val / 256 / 256 / 16;
+//        console.log(val,finalValue );
         finalValue = Math.max(0, finalValue);
         finalValue = Math.min(255, finalValue);
         if (val > 0)
@@ -165,8 +166,10 @@ function playFile(fileName) {
 
 function extendOrRetractData(data) {
     //todo extend array to status.ledQuantity
-    if (data.length < status.ledQuantity)
-        throw new Error('retract not yet supported');
+    if (data.length < status.ledQuantity) {
+        logule.error('extend not yet supported');
+        return data;
+    }
     if (data.length == status.ledQuantity)
         return data;
 

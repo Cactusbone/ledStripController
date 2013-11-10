@@ -58,6 +58,16 @@ try {
 
 logule.info(engine.options);
 
+if (engine.options.inputDevice == null) {
+    logule.error("missing input device");
+    process.exit(2);
+}
+
+if (engine.options.outputDevice == null) {
+    logule.error("missing input device");
+    process.exit(3);
+}
+
 function zero(buffer) {
     for (var iChannel = 0; iChannel < buffer.length; ++iChannel)
         for (var iSample = 0; iSample < buffer[iChannel].length; ++iSample)

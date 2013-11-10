@@ -163,7 +163,7 @@ $(function () {
         });
     });
 
-    var socket = io.connect('http://localhost');
+    var socket = io.connect();
     var baseSize = 4;
     var height = baseSize;
     var maxWidth = 1280;

@@ -27,7 +27,7 @@ for (var i = 0; i < numDevices; i++) {
     if (null == inputDeviceId && /Line in|Entr.*e ligne/i.test(name)) {
         inputDeviceId = i;
     }
-    if (!outputDeviceId && /Haut-parleurs/.test(name)) {
+    if (null == outputDeviceId && /Haut-parleurs/.test(name)) {
         outputDeviceId = i;
     }
 //    if (null == outputDeviceId && /Digital Output|sortie num.*riqu/i.test(name)) {
@@ -48,6 +48,7 @@ if (inputDeviceId != null)
 if (outputDeviceId != null)
     options.outputDevice = outputDeviceId;
 
+options.inputDevice = 3;
 _.defer(function () {
     try {
         engine.setOptions(options);
@@ -76,14 +77,11 @@ function zero(buffer) {
 var callbacks = [];
 var outputBuffer;
 engine.addAudioCallback(function (inputBuffer) {
-//    logule.info("taille", inputBuffer.length, inputBuffer[0].length);
-//    engine.fft.simple(outputBuffer, inputBuffer[0], "real");
     outputBuffer = _.clone(inputBuffer[0]);
-//    zero(inputBuffer[0]);
-//    zero(inputBuffer[1]);
     _.each(callbacks, function (cb) {
         cb();
     });
+//    zero(inputBuffer[0]);
     return inputBuffer;
 });
 

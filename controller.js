@@ -121,11 +121,9 @@ sound.onData(function () {
     }
 });
 
-//prendre que la moitié du FFT, mesurer le plus haut, s'en souvenir , et se limiter a ce range de valeurs
 
 function fillMusicBuffer() {
     var soundBuffer = sound.getBuffer();
-    //todo base current value on color
     var fftData = [];
     var preparedData = [];
     var colorMultiplier = Math.max(status.color.r, status.color.g, status.color.b);
@@ -134,8 +132,16 @@ function fillMusicBuffer() {
         g: status.color.g / colorMultiplier,
         b: status.color.b / colorMultiplier
     };
-    var fft = new FFT.complex(status.ledQuantity/2, false);
+    var fft = new FFT.complex(status.ledQuantity, false);
     fft.simple(fftData, soundBuffer, 'real');
+    fftData = fftData.slice(0, 16);
+//    fftData = fftData.slice(0, fftData.length / 2);
+//    var maxFft = 0;
+//    _.each(fftData, function (val, index) {
+//        if (Math.abs(val) * 256 > 50)
+//            maxFft = index;
+//    });
+//    fftData = fftData.slice(0, maxFft + 1);
     _.each(fftData, function (val) {
         var finalValue = Math.abs(val) * 256;
         finalValue = Math.max(0, finalValue);
@@ -187,27 +193,34 @@ function extendOrRetractData(data) {
         return data;
 
     var result = [];
-    if (data.length < status.ledQuantity) {
+    if (data.length == 0)
+        return result;
+    else if (data.length < status.ledQuantity) {
         var ledsPerData = status.ledQuantity / data.length;
-        var previousVal = {r: 0, g: 0, b: 0};
+        var currentProgression = 0;
+        var currentPos = 0;
         for (var i = 0; i < status.ledQuantity; i++) {
-            var DataPos = Math.round(i / ledsPerData);
-//            if()
-            var val = {
-                r: previousVal.r,
-                g: previousVal.g,
-                b: previousVal.b
-            };
-            result.push(val);
-        }
-
-        _.each(data, function (val, index) {
-            var pos = 0;
-            while (pos < ledsPerData) {
-                result.push(val);
-                pos++;
+            if (currentProgression + 1 < ledsPerData) {
+                result.push({
+                    r: data[currentPos].r,
+                    g: data[currentPos].g,
+                    b: data[currentPos].b
+                });
+                currentProgression++;
+            } else {
+                var fromCurrent = ledsPerData - currentProgression;
+                var fromNext = 1 - fromCurrent;
+                var current = data[currentPos];
+                var next = data[currentPos + 1] || {r: 0, g: 0, b: 0};
+                result.push({
+                    r: current.r * fromCurrent + next.r * fromNext,
+                    g: current.g * fromCurrent + next.g * fromNext,
+                    b: current.b * fromCurrent + next.b * fromNext
+                });
+                currentPos++;
+                currentProgression = fromNext;
             }
-        });
+        }
     } else {
         var dataLengthPerLed = Math.floor(data.length / status.ledQuantity);
         var currentValue = {r: 0, g: 0, b: 0};

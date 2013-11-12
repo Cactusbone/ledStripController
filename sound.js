@@ -27,36 +27,35 @@ for (var i = 0; i < numDevices; i++) {
     if (null == inputDeviceId && /Line in|Entr.*e ligne/i.test(name)) {
         inputDeviceId = i;
     }
-//    if (!outputDeviceId && /Haut-parleurs/.test(name)) {
-//        outputDeviceId = i;
-//    }
-    if (null == outputDeviceId && /Digital Output|sortie num.*riqu/i.test(name)) {
+    if (!outputDeviceId && /Haut-parleurs/.test(name)) {
         outputDeviceId = i;
     }
+//    if (null == outputDeviceId && /Digital Output|sortie num.*riqu/i.test(name)) {
+//        outputDeviceId = i;
+//    }
 }
-
+logule.info("initial options", engine.options);
 logule.info("in: %d, out: %d", inputDeviceId, outputDeviceId);
 
 var options = {
-    inputChannels: 2,
-    outputChannels: 2,
-//    framesPerBuffer: 4096,
+    inputChannels: 1,
+    outputChannels: 1,
     interleaved: false,
-    sampleFormat: 0x02,//int32
-    framesPerBuffer: 256//must be a multiple of 256
+    framesPerBuffer: 4096,
 };
 if (inputDeviceId != null)
     options.inputDevice = inputDeviceId;
 if (outputDeviceId != null)
     options.outputDevice = outputDeviceId;
 
-try {
-    engine.setOptions(options);
-} catch (err) {
-    logule.error(err);
-}
-
-logule.info(engine.options);
+_.defer(function () {
+    try {
+        engine.setOptions(options);
+    } catch (err) {
+        logule.error(err);
+    }
+    logule.info("applied options", engine.options);
+});
 
 if (engine.options.inputDevice == null) {
     logule.error("missing input device");
@@ -74,6 +73,7 @@ function zero(buffer) {
             buffer[iChannel][iSample] = 0.0;
 }
 
+var callbacks = [];
 var outputBuffer;
 engine.addAudioCallback(function (inputBuffer) {
 //    logule.info("taille", inputBuffer.length, inputBuffer[0].length);
@@ -81,11 +81,17 @@ engine.addAudioCallback(function (inputBuffer) {
     outputBuffer = _.clone(inputBuffer[0]);
 //    zero(inputBuffer[0]);
 //    zero(inputBuffer[1]);
+    _.each(callbacks, function (cb) {
+        cb();
+    });
     return inputBuffer;
 });
 
 module.exports = {
     getBuffer: function () {
         return outputBuffer;
+    },
+    onData: function (cb) {
+        callbacks.push(cb);
     }
 };

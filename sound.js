@@ -48,7 +48,7 @@ if (inputDeviceId != null)
 if (outputDeviceId != null)
     options.outputDevice = outputDeviceId;
 
-options.inputDevice = 3;
+//options.inputDevice = 3;
 _.defer(function () {
     try {
         engine.setOptions(options);

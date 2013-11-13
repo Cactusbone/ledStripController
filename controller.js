@@ -134,14 +134,7 @@ function fillMusicBuffer() {
     };
     var fft = new FFT.complex(status.ledQuantity, false);
     fft.simple(fftData, soundBuffer, 'real');
-    fftData = fftData.slice(0, 16);
-//    fftData = fftData.slice(0, fftData.length / 2);
-//    var maxFft = 0;
-//    _.each(fftData, function (val, index) {
-//        if (Math.abs(val) * 256 > 50)
-//            maxFft = index;
-//    });
-//    fftData = fftData.slice(0, maxFft + 1);
+    fftData = fftData.slice(0, 64);
     _.each(fftData, function (val) {
         var finalValue = Math.abs(val) * 256;
         finalValue = Math.max(0, finalValue);
@@ -152,7 +145,12 @@ function fillMusicBuffer() {
             b: Math.round(finalValue * ratios.b)
         });
     });
-    buffer = extendOrRetractData(preparedData);
+    var dualDirection = [];
+    _.each(preparedData, function (val) {
+        dualDirection.push(val);
+        dualDirection.unshift(val);
+    });
+    buffer = extendOrRetractData(dualDirection);
 }
 
 function playFile(fileName) {

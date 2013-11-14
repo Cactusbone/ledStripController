@@ -143,6 +143,17 @@ app.get('^/getSoundDevices', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
+app.get('^/setMinDelay', function (req, res) {
+    var minDelay = +req.param("minDelay");
+    if (!minDelay) {
+        res.send("invalid minDelay", 400);
+        return;
+    }
+    controller.setMinDelay(minDelay);
+    sendStatus(res);
+});
+
+////////////////////////////////////////////////////////////////////////////////
 app.get('^/getPorts', function (req, res) {
     controller.getPorts(function (err, ports) {
         if (err)

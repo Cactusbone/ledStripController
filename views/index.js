@@ -131,6 +131,23 @@ $(function () {
         });
     });
 
+    $("#setDelay").on("click", function () {
+        $.ajax({
+            url: '/setMinDelay',
+            data: {
+                minDelay: $("#delay").val()
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("setMinDelay", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
     $("#setSoundConf").on("click", function () {
         var data = {
             sampleRate: +$("#sampleRate").val(),

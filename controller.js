@@ -27,6 +27,7 @@ module.exports = {
     getPorts: strip.getPorts,
     initLeds: initLeds,
     initSerialPort: initSerialPort,
+    setMinDelay: setMinDelay,
     onBuffer: onBuffer,
     setSoundConf: setSoundConf,
     getSoundDevices: sound.getDevices,
@@ -35,6 +36,7 @@ module.exports = {
 var status = {
     ledQuantity: 240,
     mode: 'music',
+    minDelay: 50,
     color: {r: 64, g: 64, b: 64},//for color mode and music
     stableMode: 'music',//to resume to when file mode ends.
     soundConf: {
@@ -56,6 +58,9 @@ function initLeds(quantity) {
 function initSerialPort(port) {
     status.port = port;
     strip.initSerialPort(port);
+}
+function setMinDelay(delay) {
+    status.minDelay = delay;
 }
 
 function setSoundConf(conf) {
@@ -131,7 +136,7 @@ var timestamp = Date.now();
 sound.onData(function () {
     if (status.mode == "music") {
         var currentTime = Date.now();
-        if (currentTime - timestamp < 50)
+        if (currentTime - timestamp < status.minDelay)
             return;//rate limiting
         //115200 baud
         //44100 sampleRate

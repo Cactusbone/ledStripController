@@ -113,11 +113,20 @@ function playMusic() {
     status.mode = 'music';
     status.stableMode = 'music';
 }
-
+var timestamp = Date.now();
 sound.onData(function () {
     if (status.mode == "music") {
+        var currentTime = Date.now();
+        if (currentTime - timestamp < 50)
+            return;//rate limiting
+        //115200 baud
+        //44100 sampleRate
+        //240*3*8=5760 bits pour la lumière par buffer.
+        //115200/5760=20 mesures par seconde
+        //donc au moins 50ms
         fillMusicBuffer();
         writeBuffer();
+        timestamp = currentTime;
     }
 });
 

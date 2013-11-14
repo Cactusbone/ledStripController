@@ -41,7 +41,7 @@ var options = {
     inputChannels: 1,
     outputChannels: 1,
     interleaved: false,
-    framesPerBuffer: 4096,
+    framesPerBuffer: 1024,
 };
 if (inputDeviceId != null)
     options.inputDevice = inputDeviceId;

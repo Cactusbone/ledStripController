@@ -172,7 +172,11 @@ $(function () {
 
     computeSize(ledPerLine);
 
+    var timestamp = Date.now();
     socket.on('buffer', function (data) {
+        var newTime = Date.now();
+        console.log(newTime - timestamp);
+        timestamp = newTime;
         computeSize(data.length);
 
         var ctx = canvas.getContext("2d");

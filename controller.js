@@ -28,6 +28,8 @@ module.exports = {
     initLeds: initLeds,
     initSerialPort: initSerialPort,
     onBuffer: onBuffer,
+    setSoundConf: setSoundConf,
+    getSoundDevices: sound.getDevices,
 };
 
 var status = {
@@ -35,8 +37,15 @@ var status = {
     mode: 'music',
     color: {r: 64, g: 64, b: 64},//for color mode and music
     stableMode: 'music',//to resume to when file mode ends.
+    soundConf: {
+        inputChannels: 1,
+        outputChannels: 1,
+        interleaved: false,
+        framesPerBuffer: 1024,
+    },
 };
 
+sound.applyConf(status.soundConf);
 initLeds(status.ledQuantity);
 
 function initLeds(quantity) {
@@ -47,6 +56,11 @@ function initLeds(quantity) {
 function initSerialPort(port) {
     status.port = port;
     strip.initSerialPort(port);
+}
+
+function setSoundConf(conf) {
+    status.soundConf = conf;
+    return sound.applyConf(status.soundConf);
 }
 
 var onBufferCb = [];
@@ -143,7 +157,7 @@ function fillMusicBuffer() {
     };
     var fft = new FFT.complex(status.ledQuantity, false);
     fft.simple(fftData, soundBuffer, 'real');
-    fftData = fftData.slice(0, 64);
+//    fftData = fftData.slice(0, 64);
     _.each(fftData, function (val) {
         var finalValue = Math.abs(val) * 256;
         finalValue = Math.max(0, finalValue);

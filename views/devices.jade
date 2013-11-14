@@ -1,0 +1,7 @@
+ul
+    if devices.length == 0
+        | Pas de son !
+    else
+        each device in devices
+            li
+                | #{device.id} (#{device.name})

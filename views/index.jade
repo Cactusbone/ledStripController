@@ -5,6 +5,7 @@ html
         link(rel="stylesheet", type="text/css", href="index.css")
     body
         h1 Gestion de la lumière !
+        #time
         canvas#canvas
         fieldset
             legend Ports
@@ -36,6 +37,28 @@ html
             label ou url :
                 input#url(type='url') url
             button.btn.btn-primary#sendFileOrUrl Envoyer
+        fieldset
+            legend Devices
+            #soundDevices
+        fieldset
+            legend Options sonores
+            label sampleRate
+                input#sampleRate(value="44100")
+            label framesPerBuffer
+                input#framesPerBuffer(value="1024")
+            label interleaved
+                input#interleaved(value="false")
+            label inputChannels
+                input#inputChannels(value="1")
+            label outputChannels
+                input#outputChannels(value="1")
+            label inputDevice
+                input#inputDevice(value="")
+            label outputDevice
+                input#outputDevice(value="")
+            label zero
+                input#zero(value="false")
+            button.btn.btn-primary#setSoundConf Envoyer
 
         script(src="/socket.io/socket.io.js")
         script(src="index.js")

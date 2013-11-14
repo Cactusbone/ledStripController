@@ -138,6 +138,11 @@ app.get('^/getMovies', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
+app.get('^/getSoundDevices', function (req, res) {
+    res.send(controller.getSoundDevices());
+});
+
+////////////////////////////////////////////////////////////////////////////////
 app.get('^/getPorts', function (req, res) {
     controller.getPorts(function (err, ports) {
         if (err)
@@ -222,6 +227,23 @@ app.get("^/initSerialPort", function (req, res) {
 app.get("^/initLeds", function (req, res) {
     controller.initLeds(req.param("ledquantity"));
     sendStatus(res);
+});
+
+app.get("^/setSoundConf", function (req, res) {
+    var conf = req.param("conf");
+    conf.sampleRate = +conf.sampleRate;
+    conf.framesPerBuffer = +conf.framesPerBuffer;
+    conf.inputChannels = +conf.inputChannels;
+    conf.outputChannels = +conf.outputChannels;
+    conf.inputDevice = +conf.inputDevice;
+    conf.outputDevice = +conf.outputDevice;
+    conf.interleaved = conf.interleaved == "true";
+    conf.zero = conf.zero == "true";
+    var error = controller.setSoundConf(conf);
+    if (error)
+        res.send(error, 500);
+    else
+        sendStatus(res);
 });
 
 var server = app.listen(port, function () {

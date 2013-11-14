@@ -2,6 +2,7 @@ var $ = require('jquery');
 var _ = require('underscore');
 var moviesTemplate = require("./movies.jade");
 var portsTemplate = require("./ports.jade");
+var devicesTemplate = require("./devices.jade");
 
 function displayStatus(status) {
     $('#status').text(JSON.stringify(status));
@@ -24,8 +25,8 @@ $(function () {
     });
 
     loadMovies();
-
     loadPorts();
+    loadDevices();
 
     $("#playRandom").on("click", function () {
         $.ajax({
@@ -130,6 +131,32 @@ $(function () {
         });
     });
 
+    $("#setSoundConf").on("click", function () {
+        var data = {
+            sampleRate: +$("#sampleRate").val(),
+            framesPerBuffer: +$("#framesPerBuffer").val(),
+            inputChannels: +$("#inputChannels").val(),
+            outputChannels: +$("#outputChannels").val(),
+            inputDevice: +$("#inputDevice").val(),
+            outputDevice: +$("#outputDevice").val(),
+            interleaved: $("#interleaved").val() == "true",
+            zero: $("#zero").val() == "true",
+        };
+        $.ajax({
+            url: '/setSoundConf',
+            data: {conf: data},
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("setSoundConf", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
+
     var $body = $('body');
     $body.on("click", ".setPort", function (event) {
         var port = $(event.currentTarget).attr("data-name");
@@ -175,7 +202,7 @@ $(function () {
     var timestamp = Date.now();
     socket.on('buffer', function (data) {
         var newTime = Date.now();
-        console.log(newTime - timestamp);
+        $("#time").text(newTime - timestamp);
         timestamp = newTime;
         computeSize(data.length);
 
@@ -223,6 +250,19 @@ function loadPorts() {
         },
         success: function (ports) {
             $("#availablePorts").empty().append(portsTemplate({ports: ports}));
+        }
+    });
+}
+
+function loadDevices() {
+    $.ajax({
+        url: '/getSoundDevices',
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error("ajax error", textStatus);
+            displayError("getSoundDevices", errorThrown);
+        },
+        success: function (devices) {
+            $("#soundDevices ").empty().append(devicesTemplate({devices: devices}));
         }
     });
 }

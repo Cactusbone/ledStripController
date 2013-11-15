@@ -148,6 +148,23 @@ $(function () {
         });
     });
 
+    $("#setMinValue").on("click", function () {
+        $.ajax({
+            url: '/setMinValue',
+            data: {
+                minValue: $("#minValue").val()
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("setMinValue", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
     $("#setSoundConf").on("click", function () {
         var data = {
             sampleRate: +$("#sampleRate").val(),

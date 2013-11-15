@@ -28,6 +28,7 @@ module.exports = {
     initLeds: initLeds,
     initSerialPort: initSerialPort,
     setMinDelay: setMinDelay,
+    setMinValue: setMinValue,
     onBuffer: onBuffer,
     setSoundConf: setSoundConf,
     getSoundDevices: sound.getDevices,
@@ -37,6 +38,7 @@ var status = {
     ledQuantity: 240,
     mode: 'music',
     minDelay: 50,
+    minValue: 64,
     color: {r: 64, g: 64, b: 64},//for color mode and music
     stableMode: 'music',//to resume to when file mode ends.
     soundConf: {
@@ -59,6 +61,11 @@ function initSerialPort(port) {
     status.port = port;
     strip.initSerialPort(port);
 }
+
+function setMinValue(value) {
+    status.minValue = value;
+}
+
 function setMinDelay(delay) {
     status.minDelay = delay;
 }
@@ -167,6 +174,8 @@ function fillMusicBuffer() {
         var finalValue = Math.abs(val) * 256;
         finalValue = Math.max(0, finalValue);
         finalValue = Math.min(255, finalValue);
+        if (finalValue < status.minValue)
+            finalValue = 0;
         preparedData.push({
             r: Math.round(finalValue * ratios.r),
             g: Math.round(finalValue * ratios.g),

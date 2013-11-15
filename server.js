@@ -154,6 +154,17 @@ app.get('^/setMinDelay', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
+app.get('^/setMinValue', function (req, res) {
+    var minValue = +req.param("minValue");
+    if (!minValue) {
+        res.send("invalid minValue", 400);
+        return;
+    }
+    controller.setMinValue(minValue);
+    sendStatus(res);
+});
+
+////////////////////////////////////////////////////////////////////////////////
 app.get('^/getPorts', function (req, res) {
     controller.getPorts(function (err, ports) {
         if (err)

@@ -30,10 +30,30 @@ $(function () {
 
     $("#playRandom").on("click", function () {
         $.ajax({
-            url: '/playRandom',
+            url: '/setColor',
+            data: {
+                color: "random"
+            },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error("ajax error", textStatus);
                 displayError("playRandom", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
+    $("#fullRandom").on("click", function () {
+        $.ajax({
+            url: '/setColor',
+            data: {
+                color: "fullRandom"
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("fullRandom", errorThrown);
             },
             success: function (result) {
                 displayError();
@@ -140,6 +160,23 @@ $(function () {
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error("ajax error", textStatus);
                 displayError("setMinDelay", errorThrown);
+            },
+            success: function (result) {
+                displayError();
+                displayStatus(result);
+            }
+        });
+    });
+
+    $("#setRandomColorDelay").on("click", function () {
+        $.ajax({
+            url: '/setRandomColorDelay',
+            data: {
+                value: $("#randomColorDelay").val()
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("setRandomColorDelay", errorThrown);
             },
             success: function (result) {
                 displayError();

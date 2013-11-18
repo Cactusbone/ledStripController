@@ -22,8 +22,12 @@ html
             button.btn.btn-primary#playMusic Suivre la musique (line in)
         fieldset
             legend Delay
-            input#delay(value='50')
+            input#delay(value='75')
             button.btn.btn-primary#setDelay Changer
+        fieldset
+            legend Random Color Delay
+            input#randomColorDelay(value='500')
+            button.btn.btn-primary#setRandomColorDelay Changer
         fieldset
             legend minValue
             input#minValue(value='64')
@@ -31,6 +35,7 @@ html
         fieldset
             legend Aléatoire
             button.btn.btn-primary#playRandom Couleurs aléatoires
+            button.btn.btn-primary#fullRandom Couleurs très aléatoires
         fieldset
             legend Couleur unie
             input#color(type='color') couleur
@@ -53,7 +58,7 @@ html
             label sampleRate
                 input#sampleRate(value="44100")
             label framesPerBuffer
-                input#framesPerBuffer(value="1024")
+                input#framesPerBuffer(value="2048")
             label interleaved
                 input#interleaved(value="false")
             label inputChannels

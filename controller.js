@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var async = require('async');
 var FFT = require('fft');
+var onecolor = require('onecolor');
 var logule = require('logule').init(module);
 
 var strip = require("./strip8806.js");
@@ -20,7 +21,6 @@ fs.mkdir(movieFolder, function (err) {
 module.exports = {
     playFile: playFile,
     playColor: playColor,
-    playRandom: playRandom,
     playMusic: playMusic,
     getStatus: getStatus,
     getMovies: getMovies,
@@ -29,6 +29,7 @@ module.exports = {
     initSerialPort: initSerialPort,
     setMinDelay: setMinDelay,
     setMinValue: setMinValue,
+    setRandomColorDelay: setRandomColorDelay,
     onBuffer: onBuffer,
     setSoundConf: setSoundConf,
     getSoundDevices: sound.getDevices,
@@ -67,6 +68,10 @@ function setMinValue(value) {
     status.minValue = value;
 }
 
+function setRandomColorDelay(value) {
+    status.randomColorDelay = value;
+}
+
 function setMinDelay(delay) {
     status.minDelay = delay;
 }
@@ -95,12 +100,8 @@ setInterval(regularCheck, 500);
 
 function regularCheck() {
     switch (status.mode) {
-        case 'random':
-            fillRandomBuffer();
-            writeBuffer();
-            break;
         case 'color':
-            fillBuffer(status.color);
+            fillColorBuffer();
             writeBuffer();//act as a strip keepalive
             break;
         case 'music':
@@ -109,6 +110,16 @@ function regularCheck() {
         case 'file':
             //do nothing
             break;
+    }
+}
+
+function fillColorBuffer() {
+    if (status.color == "random") {
+        fillBuffer(toRandomColor());
+    } else if (status.color == "fullRandom") {
+        fillRandomBuffer();
+    } else {
+        fillBuffer(status.color);
     }
 }
 
@@ -141,7 +152,7 @@ function playMusic() {
     status.stableMode = 'music';
 }
 var timestamp = Date.now();
-var lastRandomColor = toRandomColor();
+var lastRandomColor = toOneColor(toRandomColor());
 var lastRandomColorTime = Date.now();
 sound.onData(function () {
     if (status.mode == "music") {
@@ -165,20 +176,16 @@ function fillMusicBuffer() {
     var fftData = [];
     var preparedData = [];
     var color = status.color;
-    if (color == "random") {
+    if (status.color == "random") {
         color = lastRandomColor;
         var currentTime = Date.now();
         if (currentTime - lastRandomColorTime > status.randomColorDelay) {
-            lastRandomColor = toRandomColor();
+            lastRandomColor = toOneColor(toRandomColor());
             lastRandomColorTime = currentTime;
         }
+    } else if (status.color != "fullRandom") {
+        color = toOneColor(color);
     }
-    var colorMultiplier = Math.max(color.r, color.g, color.b);
-    var ratios = {
-        r: color.r / colorMultiplier,
-        g: color.g / colorMultiplier,
-        b: color.b / colorMultiplier
-    };
     var fft = new FFT.complex(status.ledQuantity, false);
     fft.simple(fftData, soundBuffer, 'real');
 //    fftData = fftData.slice(0, 64);
@@ -188,11 +195,10 @@ function fillMusicBuffer() {
         finalValue = Math.min(255, finalValue);
         if (finalValue < status.minValue)
             finalValue = 0;
-        preparedData.push({
-            r: Math.round(finalValue * ratios.r),
-            g: Math.round(finalValue * ratios.g),
-            b: Math.round(finalValue * ratios.b)
-        });
+        if (status.color == "fullRandom")
+            preparedData.push(fromOneColor(toOneColor(toRandomColor()).value(finalValue / 256)));
+        else
+            preparedData.push(fromOneColor(color.value(finalValue / 256)));
     });
     var dualDirection = [];
     _.each(preparedData, function (val) {
@@ -300,13 +306,6 @@ function fillBuffer(color) {
     }
 }
 
-function playRandom() {
-    cancelDynamicIfNeeded();
-    status.mode = 'random';
-    status.color = 'random';
-    status.stableMode = 'random';
-}
-
 function rand255() {
     return Math.floor(Math.random() * 255);
 }
@@ -317,6 +316,18 @@ function toRandomColor() {
         g: rand255(),
         b: rand255()
     }
+}
+
+function toOneColor(color) {
+    return onecolor("rgb(" + color.r + "," + color.g + "," + color.b + ")");
+}
+
+function fromOneColor(color) {
+    return {
+        r: Math.round(color.red() * 255),
+        g: Math.round(color.green() * 255),
+        b: Math.round(color.blue() * 255),
+    };
 }
 
 function fillRandomBuffer() {

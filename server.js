@@ -101,23 +101,22 @@ app.get('^/status', function (req, res) {
 ////////////////////////////////////////////////////////////////////////////////
 app.get('^/setColor', function (req, res) {
     var color = req.param("color");
-    var parsedColor = onecolor(color);
-    if (!parsedColor) {
-        res.send("invalid Color", 400);
-        return;
+    if (color == "random")
+        controller.playColor("random");
+    else if (color == "fullRandom")
+        controller.playColor("fullRandom");
+    else {
+        var parsedColor = onecolor(color);
+        if (!parsedColor) {
+            res.send("invalid Color", 400);
+            return;
+        }
+        controller.playColor({
+            r: Math.round(parsedColor.red() * 255),
+            g: Math.round(parsedColor.green() * 255),
+            b: Math.round(parsedColor.blue() * 255),
+        });
     }
-    controller.playColor({
-        r: Math.round(parsedColor.red() * 255),
-        g: Math.round(parsedColor.green() * 255),
-        b: Math.round(parsedColor.blue() * 255),
-    });
-    sendStatus(res);
-});
-
-
-////////////////////////////////////////////////////////////////////////////////
-app.get('^/playRandom', function (req, res) {
-    controller.playRandom();
     sendStatus(res);
 });
 
@@ -154,13 +153,13 @@ app.get('^/setMinDelay', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-app.get('^/setMinValue', function (req, res) {
-    var minValue = +req.param("minValue");
-    if (!minValue) {
-        res.send("invalid minValue", 400);
+app.get('^/setRandomColorDelay', function (req, res) {
+    var value = +req.param("value");
+    if (!value) {
+        res.send("invalid randomColorDelay", 400);
         return;
     }
-    controller.setMinValue(minValue);
+    controller.setRandomColorDelay(value);
     sendStatus(res);
 });
 

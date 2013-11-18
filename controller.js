@@ -37,15 +37,16 @@ module.exports = {
 var status = {
     ledQuantity: 240,
     mode: 'music',
-    minDelay: 50,
+    minDelay: 75,
     minValue: 64,
-    color: {r: 64, g: 64, b: 64},//for color mode and music
+    color: 'random',//for color mode and music
+    randomColorDelay: 500,
     stableMode: 'music',//to resume to when file mode ends.
     soundConf: {
         inputChannels: 1,
         outputChannels: 1,
         interleaved: false,
-        framesPerBuffer: 1024,
+        framesPerBuffer: 2048,
     },
 };
 
@@ -140,6 +141,8 @@ function playMusic() {
     status.stableMode = 'music';
 }
 var timestamp = Date.now();
+var lastRandomColor = toRandomColor();
+var lastRandomColorTime = Date.now();
 sound.onData(function () {
     if (status.mode == "music") {
         var currentTime = Date.now();
@@ -161,11 +164,20 @@ function fillMusicBuffer() {
     var soundBuffer = sound.getBuffer();
     var fftData = [];
     var preparedData = [];
-    var colorMultiplier = Math.max(status.color.r, status.color.g, status.color.b);
+    var color = status.color;
+    if (color == "random") {
+        color = lastRandomColor;
+        var currentTime = Date.now();
+        if (currentTime - lastRandomColorTime > status.randomColorDelay) {
+            lastRandomColor = toRandomColor();
+            lastRandomColorTime = currentTime;
+        }
+    }
+    var colorMultiplier = Math.max(color.r, color.g, color.b);
     var ratios = {
-        r: status.color.r / colorMultiplier,
-        g: status.color.g / colorMultiplier,
-        b: status.color.b / colorMultiplier
+        r: color.r / colorMultiplier,
+        g: color.g / colorMultiplier,
+        b: color.b / colorMultiplier
     };
     var fft = new FFT.complex(status.ledQuantity, false);
     fft.simple(fftData, soundBuffer, 'real');
@@ -291,6 +303,7 @@ function fillBuffer(color) {
 function playRandom() {
     cancelDynamicIfNeeded();
     status.mode = 'random';
+    status.color = 'random';
     status.stableMode = 'random';
 }
 
@@ -299,7 +312,7 @@ function rand255() {
 }
 
 function toRandomColor() {
-    return{
+    return {
         r: rand255(),
         g: rand255(),
         b: rand255()

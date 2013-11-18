@@ -37,14 +37,24 @@ function audioCallback(inputBuffer) {
             zero(inputBuffer);
         return inputBuffer;
     } else {
+        var i;
         //todo handle other channels ?
         outputBuffer = _.clone(inputBuffer[0]);
         _.each(callbacks, function (cb) {
             cb();
         });
-        if (options.zero)
-            zero(inputBuffer[0]);
-        return inputBuffer;
+        if (options.zero) {
+            for (i = 0; i < options.outputChannels; i++) {
+                zero(inputBuffer[i]);
+            }
+            return inputBuffer;
+        } else {
+            var result = [];
+            for (i = 0; i < options.outputChannels; i++) {
+                result[i] = inputBuffer[0];
+            }
+            return result;
+        }
     }
 }
 

@@ -15,9 +15,14 @@ var logule = require('logule').init(module);
 var _ = require('underscore');
 var coreAudio = require("node-core-audio");
 
-var engine = coreAudio.createNewAudioEngine();
+var engine = coreAudio.createNewAudioEngine({
+    inputChannels: 1,
+    outputChannels: 1,
+    interleaved: false,
+    framesPerBuffer: 2048,
+});
 
-var options = {};
+var options = _.extend({zero: false}, engine.getOptions());
 function zero(buffer) {
     for (var iSample = 0; iSample < buffer.length; ++iSample)
         buffer[iSample] = 0.0;
@@ -74,6 +79,9 @@ module.exports = {
     },
     onData: function (cb) {
         callbacks.push(cb);
+    },
+    getConf: function () {
+        return options;
     },
     applyConf: function (conf) {
         options = conf;

@@ -43,12 +43,7 @@ var status = {
     color: 'random',//for color mode and music
     randomColorDelay: 500,
     stableMode: 'music',//to resume to when file mode ends.
-    soundConf: {
-        inputChannels: 1,
-        outputChannels: 1,
-        interleaved: false,
-        framesPerBuffer: 2048,
-    },
+    soundConf: sound.getConf(),
 };
 
 sound.applyConf(status.soundConf);

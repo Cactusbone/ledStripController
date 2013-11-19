@@ -1,12 +1,10 @@
 var $ = require('jquery');
 var _ = require('underscore');
+require('../node_modules/bootstrap-stylus/js/button');
+
 var moviesTemplate = require("./movies.jade");
 var portsTemplate = require("./ports.jade");
 var devicesTemplate = require("./devices.jade");
-
-function displayStatus(status) {
-    $('#status').text(JSON.stringify(status));
-}
 
 function displayError() {
     $('#error').text(arguments.length ? _.toArray(arguments).join(":") : "");
@@ -20,13 +18,56 @@ $(function () {
             displayError("status", errorThrown);
         },
         success: function (result) {
-            displayStatus(result);
+            status = result;
+            applyStatusToScreen();
         }
     });
 
     loadMovies();
     loadPorts();
     loadDevices();
+
+    var status = {};
+
+    $('.modeButtons').button();
+    $(".setMode").on("change", function (event) {
+        status.mode = $(event.currentTarget).attr("data-mode");
+        applyStatusToScreen();
+    });
+
+    function applyStatusToScreen() {
+        $(".setMode").parent().removeClass("active");
+        $(".setMode[data-mode=" + status.mode + "]").parent().addClass("active");
+
+        $(".colorPanel").hide();
+        $(".musicPanel").hide();
+        $(".videoPanel").hide();
+        //noinspection FallthroughInSwitchStatementJS
+        switch (status.mode) {
+            case 'music':
+                $(".musicPanel").show();
+            case 'color':
+                $(".colorPanel").show();
+                break;
+            case 'video':
+                $(".videoPanel").show();
+        }
+
+        applyObject(status);
+    }
+
+    function applyObject(obj) {
+        _.each(obj, function (val, key) {
+            if (_.isObject(val)) {
+                applyObject(val)
+            } else {
+                $("#" + key).val(val);
+            }
+        });
+    }
+
+    function saveStatus() {
+    }
 
     $("#playRandom").on("click", function () {
         $.ajax({
@@ -40,7 +81,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -57,7 +99,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -74,7 +117,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -89,7 +133,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -146,7 +191,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -155,7 +201,7 @@ $(function () {
         $.ajax({
             url: '/setMinDelay',
             data: {
-                minDelay: $("#delay").val()
+                minDelay: $("#minDelay").val()
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error("ajax error", textStatus);
@@ -163,7 +209,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -180,7 +227,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -197,7 +245,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -222,7 +271,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -240,7 +290,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -256,7 +307,8 @@ $(function () {
             },
             success: function (result) {
                 displayError();
-                displayStatus(result);
+                status = result;
+                applyStatusToScreen();
             }
         });
     });
@@ -296,6 +348,20 @@ $(function () {
         }
         $("#canvas").attr({width: width, height: height});
     }
+
+    function loadDevices() {
+        $.ajax({
+            url: '/getSoundDevices',
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("ajax error", textStatus);
+                displayError("getSoundDevices", errorThrown);
+            },
+            success: function (devices) {
+                $(".devices").empty().append(devicesTemplate({devices: devices}));
+                applyStatusToScreen();
+            }
+        });
+    }
 });
 
 
@@ -321,19 +387,6 @@ function loadPorts() {
         },
         success: function (ports) {
             $("#availablePorts").empty().append(portsTemplate({ports: ports}));
-        }
-    });
-}
-
-function loadDevices() {
-    $.ajax({
-        url: '/getSoundDevices',
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error("ajax error", textStatus);
-            displayError("getSoundDevices", errorThrown);
-        },
-        success: function (devices) {
-            $("#soundDevices ").empty().append(devicesTemplate({devices: devices}));
         }
     });
 }

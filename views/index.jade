@@ -7,71 +7,85 @@ html
         h1 Gestion de la lumière !
         #time
         canvas#canvas
+        br
+        #error
+        br
         fieldset
             legend Ports
             #availablePorts
             label Quantité de leds
                 input#ledquantity(value='240')
                 button.btn.btn-warning#initLeds Changer
-        fieldset
-            legend Statut
-            #status
-            #error
-        fieldset
-            legend Musique
-            button.btn.btn-primary#playMusic Suivre la musique (line in)
-        fieldset
-            legend Delay
-            input#delay(value='75')
-            button.btn.btn-primary#setDelay Changer
-        fieldset
-            legend Random Color Delay
-            input#randomColorDelay(value='500')
-            button.btn.btn-primary#setRandomColorDelay Changer
-        fieldset
-            legend minValue
-            input#minValue(value='64')
-            button.btn.btn-primary#setMinValue Changer
-        fieldset
-            legend Aléatoire
-            button.btn.btn-primary#playRandom Couleurs aléatoires
-            button.btn.btn-primary#fullRandom Couleurs très aléatoires
-        fieldset
-            legend Couleur unie
-            input#color(type='color') couleur
-            button.btn.btn-primary#applyColor Envoyer cette couleur
-        fieldset
-            legend Fichiers
-            #availableFiles
-        fieldset
-            legend Envoi de fichier vidéo
-            label fichier vidéo :
-                input#file(type='file')
-            label ou url :
-                input#url(type='url') url
-            button.btn.btn-primary#sendFileOrUrl Envoyer
-        fieldset
-            legend Devices
-            #soundDevices
-        fieldset
-            legend Options sonores
-            label sampleRate
-                input#sampleRate(value="44100")
-            label framesPerBuffer
-                input#framesPerBuffer(value="2048")
-            label interleaved
-                input#interleaved(value="false")
-            label inputChannels
-                input#inputChannels(value="1")
-            label outputChannels
-                input#outputChannels(value="1")
-            label inputDevice
-                input#inputDevice(value="")
-            label outputDevice
-                input#outputDevice(value="")
-            label zero
-                input#zero(value="false")
-            button.btn.btn-primary#setSoundConf Envoyer
+        span Mode:
+            .btn-group.modeButtons(data-toggle="buttons")
+                label.btn.btn-primary
+                    input.setMode(type="radio",name="mode",data-mode="color")
+                    | Couleur
+                label.btn.btn-primary
+                    input.setMode(type="radio",name="mode",data-mode="music")
+                    | Musique
+                label.btn.btn-primary
+                    input.setMode(type="radio",name="mode",data-mode="video")
+                    | Video
+        .panel.panel-default.colorPanel
+            .panel-heading Couleur
+            .panel-body
+                button.btn.btn-primary#playRandom Couleurs aléatoires
+                button.btn.btn-primary#fullRandom Couleurs très aléatoires
+                input#color(type='color') couleur
+                button.btn.btn-primary#applyColor Envoyer cette couleur
+        .panel.panel-default.videoPanel
+            .panel-heading Videos
+            .panel-body
+                fieldset
+                    legend Disponibles:
+                    #availableFiles
+                fieldset
+                    legend Envoi de fichier vidéo
+                    label fichier vidéo :
+                        input#file(type='file')
+                    label ou url :
+                        input#url(type='url') url
+                    button.btn.btn-primary#sendFileOrUrl Envoyer
+        .panel.panel-default.musicPanel
+            .panel-heading Musique
+            .panel-body
+                label Delai entre chaque envoi de l'état de la musique au strip de led
+                    input#minDelay
+                    button.btn.btn-primary#setDelay Changer
+                br
+                label Random Color Delay
+                    input#randomColorDelay
+                    button.btn.btn-primary#setRandomColorDelay Changer
+                br
+                label fft min value
+                    input#minValue
+                    button.btn.btn-primary#setMinValue Changer
+                fieldset
+                    legend Options sonores
+                    label sampleRate
+                        input#sampleRate
+                    br
+                    label framesPerBuffer
+                        input#framesPerBuffer
+                    br
+                    label interleaved
+                        input#interleaved
+                    br
+                    label inputDevice
+                        select.devices#inputDevice
+                    label inputChannels
+                        input#inputChannels
+                    br
+                    label outputDevice
+                        select.devices#outputDevice
+                    label outputChannels
+                        input#outputChannels
+                    br
+                    label zero
+                        input#zero
+                    br
+                    button.btn.btn-primary#setSoundConf Envoyer
 
         script(src="/socket.io/socket.io.js")
         script(src="index.js")

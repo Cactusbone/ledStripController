@@ -1,7 +1,5 @@
-ul
-    if devices.length == 0
-        | Pas de son !
-    else
-        each device in devices
-            li
-                | #{device.id} (#{device.name})
+if devices.length == 0
+    option Pas de son !
+else
+    each device in devices
+        option(value=device.id) #{device.name}

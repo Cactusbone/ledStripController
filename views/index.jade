@@ -2,6 +2,7 @@ doctype html
 html
     head
         title Coucou
+        meta(name="viewport",content="width=device-width, initial-scale=1.0, user-scalable=no")
         link(rel="stylesheet", type="text/css", href="index.css")
     body
         h1 Gestion de la lumière !
@@ -30,10 +31,28 @@ html
         .panel.panel-default.colorPanel
             .panel-heading Couleur
             .panel-body
-                button.btn.btn-primary#playRandom Couleurs aléatoires
-                button.btn.btn-primary#fullRandom Couleurs très aléatoires
+                .btn-group.colorButtons(data-toggle="buttons")
+                    label.btn.btn-primary
+                        input.setColor(type="radio",name="color",data-color="fade")
+                        | Couleurs aléatoires avec fondu
+                    label.btn.btn-primary
+                        input.setColor(type="radio",name="color",data-color="random")
+                        | Couleurs aléatoires
+                    label.btn.btn-primary
+                        input.setColor(type="radio",name="color",data-color="fullrandom")
+                        | Couleurs très aléatoires
+                    label.btn.btn-primary
+                        input.setColor(type="radio",name="color",data-color="specific")
+                        | Couleur spécifique
                 input#color(type='color') couleur
-                button.btn.btn-primary#applyColor Envoyer cette couleur
+                br
+                label
+                    | Temps de fondu
+                    input(type="number")#fadeDelay
+                br
+                label
+                    | Random Color Delay
+                    input(type="number")#randomColorDelay
         .panel.panel-default.videoPanel
             .panel-heading Videos
             .panel-body
@@ -51,39 +70,37 @@ html
             .panel-heading Musique
             .panel-body
                 label Delai entre chaque envoi de l'état de la musique au strip de led
-                    input#minDelay
-                    button.btn.btn-primary#setDelay Changer
-                br
-                label Random Color Delay
-                    input#randomColorDelay
-                    button.btn.btn-primary#setRandomColorDelay Changer
+                    input(type="number")#minDelay
                 br
                 label fft min value
-                    input#minValue
-                    button.btn.btn-primary#setMinValue Changer
+                    input(type="number")#minValue
                 fieldset
                     legend Options sonores
                     label sampleRate
-                        input#sampleRate
+                        input(type="number")#sampleRate
                     br
                     label framesPerBuffer
-                        input#framesPerBuffer
+                        input(type="number")#framesPerBuffer
                     br
                     label interleaved
-                        input#interleaved
+                        select#interleaved
+                            option(value="true") true
+                            option(value="false") false
                     br
                     label inputDevice
                         select.devices#inputDevice
                     label inputChannels
-                        input#inputChannels
+                        input(type="number")#inputChannels
                     br
                     label outputDevice
                         select.devices#outputDevice
                     label outputChannels
-                        input#outputChannels
+                        input(type="number")#outputChannels
                     br
                     label zero
-                        input#zero
+                        select#zero
+                            option(value="true") true
+                            option(value="false") false
                     br
                     button.btn.btn-primary#setSoundConf Envoyer
 

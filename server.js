@@ -8,7 +8,6 @@ var jadeify = require('simple-jadeify');
 var jade = require('jade');
 var stylus = require('stylus');
 var nib = require('nib');
-var onecolor = require('onecolor');
 var fs = require('fs');
 var ytdl = require('ytdl');
 var socketio = require('socket.io');
@@ -99,31 +98,22 @@ app.get('^/status', function (req, res) {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-app.get('^/setColor', function (req, res) {
-    var color = req.param("color");
-    if (color == "random")
-        controller.playColor("random");
-    else if (color == "fullRandom")
-        controller.playColor("fullRandom");
-    else {
-        var parsedColor = onecolor(color);
-        if (!parsedColor) {
-            res.send("invalid Color", 400);
-            return;
-        }
-        controller.playColor({
-            r: Math.round(parsedColor.red() * 255),
-            g: Math.round(parsedColor.green() * 255),
-            b: Math.round(parsedColor.blue() * 255),
-        });
-    }
-    sendStatus(res);
-});
-
-////////////////////////////////////////////////////////////////////////////////
-app.get('^/playMusic', function (req, res) {
-    controller.playMusic();
-    sendStatus(res);
+app.post('^/setStatus', function (req, res) {
+    var status = req.param("status");
+    var conf = status.soundConf;
+    conf.sampleRate = +conf.sampleRate;
+    conf.framesPerBuffer = +conf.framesPerBuffer;
+    conf.inputChannels = +conf.inputChannels;
+    conf.outputChannels = +conf.outputChannels;
+    conf.inputDevice = +conf.inputDevice;
+    conf.outputDevice = +conf.outputDevice;
+    conf.interleaved = conf.interleaved == "true";
+    conf.zero = conf.zero == "true";
+    var error = controller.setStatus(status);
+    if (error)
+        res.send(error, 500);
+    else
+        sendStatus(res);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,28 +129,6 @@ app.get('^/getMovies', function (req, res) {
 ////////////////////////////////////////////////////////////////////////////////
 app.get('^/getSoundDevices', function (req, res) {
     res.send(controller.getSoundDevices());
-});
-
-////////////////////////////////////////////////////////////////////////////////
-app.get('^/setMinDelay', function (req, res) {
-    var minDelay = +req.param("minDelay");
-    if (!minDelay) {
-        res.send("invalid minDelay", 400);
-        return;
-    }
-    controller.setMinDelay(minDelay);
-    sendStatus(res);
-});
-
-////////////////////////////////////////////////////////////////////////////////
-app.get('^/setRandomColorDelay', function (req, res) {
-    var value = +req.param("value");
-    if (!value) {
-        res.send("invalid randomColorDelay", 400);
-        return;
-    }
-    controller.setRandomColorDelay(value);
-    sendStatus(res);
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +148,7 @@ app.get('^/playFile', function (req, res) {
         res.send("invalid file name", 400);
         return;
     }
-    controller.playFile(file);
+    controller.playVideo(file);
     sendStatus(res);
 });
 
@@ -248,23 +216,6 @@ app.get("^/initSerialPort", function (req, res) {
 app.get("^/initLeds", function (req, res) {
     controller.initLeds(req.param("ledquantity"));
     sendStatus(res);
-});
-
-app.get("^/setSoundConf", function (req, res) {
-    var conf = req.param("conf");
-    conf.sampleRate = +conf.sampleRate;
-    conf.framesPerBuffer = +conf.framesPerBuffer;
-    conf.inputChannels = +conf.inputChannels;
-    conf.outputChannels = +conf.outputChannels;
-    conf.inputDevice = +conf.inputDevice;
-    conf.outputDevice = +conf.outputDevice;
-    conf.interleaved = conf.interleaved == "true";
-    conf.zero = conf.zero == "true";
-    var error = controller.setSoundConf(conf);
-    if (error)
-        res.send(error, 500);
-    else
-        sendStatus(res);
 });
 
 var server = app.listen(port, function () {

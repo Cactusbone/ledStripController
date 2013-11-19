@@ -32,7 +32,29 @@ $(function () {
     $('.modeButtons').button();
     $(".setMode").on("change", function (event) {
         status.mode = $(event.currentTarget).attr("data-mode");
-        applyStatusToScreen();
+        saveStatus();
+    });
+
+    $('.colorButtons').button();
+    $(".setColor").on("change", function (event) {
+        status.color = $(event.currentTarget).attr("data-color");
+        if (status.color != "fade" && status.color != "random" && status.color != "fullrandom") {
+            status.color = $("#color").val();
+            $("#color").show();
+        } else {
+            $("#color").hide();
+        }
+        saveStatus();
+    });
+    $("#color").on("change", function () {
+        status.color = $("#color").val();
+        saveStatus();
+    });
+
+    $("#minDelay,#randomColorDelay,#minValue,#fadeDelay").on("change", function (event) {
+        var key = $(event.currentTarget).attr("id");
+        status[key] = $(event.currentTarget).val();
+        saveStatus();
     });
 
     function applyStatusToScreen() {
@@ -53,6 +75,25 @@ $(function () {
                 $(".videoPanel").show();
         }
 
+        $(".setColor").parent().removeClass("active");
+        $(".setColor[data-color=" + status.color + "]").parent().addClass("active");
+        if (status.color != "fade" && status.color != "random" && status.color != "fullrandom") {
+            $(".setColor[data-color=specific]").parent().addClass("active");
+            $("#color").show();
+        } else {
+            $("#color").hide();
+        }
+
+        if (status.color == "fade")
+            $("#fadeDelay").parent().show();
+        else
+            $("#fadeDelay").parent().hide();
+
+        if (status.color == "random" && status.mode == "music")
+            $("#randomColorDelay").parent().show();
+        else
+            $("#randomColorDelay").parent().hide();
+
         applyObject(status);
     }
 
@@ -61,82 +102,40 @@ $(function () {
             if (_.isObject(val)) {
                 applyObject(val)
             } else {
-                $("#" + key).val(val);
+                $("#" + key).val(val.toString());
             }
         });
     }
 
     function saveStatus() {
+        $.ajax({
+            url: '/setStatus',
+            type: 'POST',
+            data: {status: status},
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("sendFile error", textStatus);
+                displayError("saveStatus", errorThrown);
+            },
+            success: function (newStatus) {
+                displayError();
+                status = newStatus;
+                applyStatusToScreen();
+            }
+        });
     }
 
-    $("#playRandom").on("click", function () {
-        $.ajax({
-            url: '/setColor',
-            data: {
-                color: "random"
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("playRandom", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-    $("#fullRandom").on("click", function () {
-        $.ajax({
-            url: '/setColor',
-            data: {
-                color: "fullRandom"
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("fullRandom", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-    $("#applyColor").on("click", function () {
-        $.ajax({
-            url: '/setColor',
-            data: {
-                color: $("#color").val()
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("setColor", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-
-    $("#playMusic").on("click", function () {
-        $.ajax({
-            url: '/playMusic',
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("playMusic", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
+    $("#setSoundConf").on("click", function () {
+        status.soundConf = {
+            sampleRate: +$("#sampleRate").val(),
+            framesPerBuffer: +$("#framesPerBuffer").val(),
+            interleaved: $("#interleaved").val() == "true",
+            inputDevice: +$("#inputDevice").val(),
+            inputChannels: +$("#inputChannels").val(),
+            outputDevice: +$("#outputDevice").val(),
+            outputChannels: +$("#outputChannels").val(),
+            zero: $("#zero").val() == "true",
+        };
+        saveStatus();
     });
 
     $("#sendFileOrUrl").on("click", function () {
@@ -197,87 +196,6 @@ $(function () {
         });
     });
 
-    $("#setDelay").on("click", function () {
-        $.ajax({
-            url: '/setMinDelay',
-            data: {
-                minDelay: $("#minDelay").val()
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("setMinDelay", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-    $("#setRandomColorDelay").on("click", function () {
-        $.ajax({
-            url: '/setRandomColorDelay',
-            data: {
-                value: $("#randomColorDelay").val()
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("setRandomColorDelay", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-    $("#setMinValue").on("click", function () {
-        $.ajax({
-            url: '/setMinValue',
-            data: {
-                minValue: $("#minValue").val()
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("setMinValue", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-    $("#setSoundConf").on("click", function () {
-        var data = {
-            sampleRate: +$("#sampleRate").val(),
-            framesPerBuffer: +$("#framesPerBuffer").val(),
-            inputChannels: +$("#inputChannels").val(),
-            outputChannels: +$("#outputChannels").val(),
-            inputDevice: +$("#inputDevice").val(),
-            outputDevice: +$("#outputDevice").val(),
-            interleaved: $("#interleaved").val() == "true",
-            zero: $("#zero").val() == "true",
-        };
-        $.ajax({
-            url: '/setSoundConf',
-            data: {conf: data},
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error("ajax error", textStatus);
-                displayError("setSoundConf", errorThrown);
-            },
-            success: function (result) {
-                displayError();
-                status = result;
-                applyStatusToScreen();
-            }
-        });
-    });
-
-
     var $body = $('body');
     $body.on("click", ".setPort", function (event) {
         var port = $(event.currentTarget).attr("data-name");
@@ -316,7 +234,7 @@ $(function () {
     var socket = io.connect();
     var baseSize = 4;
     var height = baseSize;
-    var maxWidth = 1280;
+    var maxWidth = $(window).width();
     var ledPerLine = 240;
     var canvas = $("#canvas").get(0);
 

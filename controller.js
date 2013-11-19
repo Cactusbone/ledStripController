@@ -38,7 +38,7 @@ module.exports = {
 var status = {
     ledQuantity: 240,
     mode: 'music',
-    minDelay: 75,
+    minDelay: 60,
     minValue: 64,
     color: 'random',//for color mode and music
     randomColorDelay: 500,

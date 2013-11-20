@@ -22,7 +22,7 @@ var engine = coreAudio.createNewAudioEngine({
     framesPerBuffer: 2048,
 });
 
-var options = _.extend({zero: false}, engine.getOptions());
+var options = _.extend({zero: true}, engine.getOptions());
 function zero(buffer) {
     for (var iSample = 0; iSample < buffer.length; ++iSample)
         buffer[iSample] = 0.0;

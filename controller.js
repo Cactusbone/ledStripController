@@ -35,7 +35,7 @@ var status = {
     mode: 'music',
     minDelay: 60,
     minValue: 64,
-    color: 'random',//for color mode and music
+    color: 'fade',//for color mode and music
     randomColorDelay: 500,
     fadeDelay: 2000,
     soundConf: sound.getConf(),
